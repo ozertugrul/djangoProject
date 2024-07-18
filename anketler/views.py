@@ -8,3 +8,8 @@ def index(request):
 
     template = loader.get_template('index.html')
     return HttpResponse(template.render())
+
+def abc(request):
+
+    template = loader.get_template('a.html')
+    return HttpResponse(template.render())
