@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş Resim Görüntüleyici</title>
+    <style>
+        body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    overflow: hidden;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.content-container {
+    display: flex;
+    flex: 1;
+}
+
+#canvas-container {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#myCanvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#fileInputLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+#fileInputLabel:hover {
+    background-color: #45a049;
+}
+
+#fileInput {
+    display: none;
+}
+
+#info {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px;
+    border-radius: 3px;
+}
+
+#downloadButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px 20px;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    display: none;
+    transition: background-color 0.3s;
+}
+
+#downloadButton:hover {
+    background-color: #007B9A;
+}
+
+#zoomControl {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px;
+    border-radius: 3px;
+}
+
+#zoomControl button {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+#zoomPercentage {
+    margin: 0 10px;
+}
+
+#miniMap {
+    position: absolute;
+    bottom: 50px;
+    right: 10px;
+    border: 1px solid #ccc;
+    background-color: white;
+    display: none;
+}
+
+.ad {
+    position: relative;
+    background-color: #ddd;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: #666;
+}
+
+#rightAd {
+    width: 160px;
+    height: 600px;
+}
+
+#bottomAd {
+    height: 90px;
+}
+
+.ad-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(0,0,0,0.3);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 50%;
+}
+
+#menu {
+    width: 200px;
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: margin-left 0.3s ease-in-out;
+    margin-left: -200px;
+}
+
+#menuToggle {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 10;
+}
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="content-container">
+            <button id="menuToggle">☰</button>
+            <div id="menu">
+                <h3>Menü</h3>
+                <ul>
+                    <li>Seçenek 1</li>
+                    <li>Seçenek 2</li>
+                    <li>Seçenek 3</li>
+                </ul>
+            </div>
+            <div id="canvas-container">
+                <canvas id="myCanvas"></canvas>
+                <label for="fileInput" id="fileInputLabel">Resim Seç</label>
+                <input type="file" id="fileInput" accept="image/*">
+                <div id="info"></div>
+                <div id="zoomControl">
+                    <button id="zoomOutBtn">-</button>
+                    <span id="zoomPercentage">100%</span>
+                    <button id="zoomInBtn">+</button>
+                </div>
+                <button id="downloadButton">İndir</button>
+                <canvas id="miniMap"></canvas>
+            </div>
+            <div id="rightAd" class="ad">
+                Reklam
+                <div class="ad-close">✕</div>
+            </div>
+        </div>
+        <div id="bottomAd" class="ad">
+            Reklam
+            <div class="ad-close">✕</div>
+        </div>
+    </div>
+    <script>
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+const fileInput = document.getElementById('fileInput');
+const info = document.getElementById('info');
+const downloadButton = document.getElementById('downloadButton');
+const zoomPercentage = document.getElementById('zoomPercentage');
+const zoomInBtn = document.getElementById('zoomInBtn');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const miniMap = document.getElementById('miniMap');
+const miniCtx = miniMap.getContext('2d');
+const menuToggle = document.getElementById('menuToggle');
+const menu = document.getElementById('menu');
+const canvasContainer = document.getElementById('canvas-container');
+
+let img = new Image();
+let scale = 1;
+let isDragging = false;
+let startX, startY, translateX = 0, translateY = 0;
+let originalImageData;
+let menuOpen = false;
+
+function resizeCanvas() {
+    const container = document.getElementById('canvas-container');
+    const newWidth = container.clientWidth;
+    const newHeight = container.clientHeight;
+    
+    if (canvas.width !== newWidth || canvas.height !== newHeight) {
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        canvas.style.width = `${newWidth}px`;
+        canvas.style.height = `${newHeight}px`;
+        
+        if (img.src) {
+            scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            translateX = (canvas.width - img.width * scale) / 2;
+            translateY = (canvas.height - img.height * scale) / 2;
+        }
+        
+        draw();
+    }
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+        originalImageData = event.target.result;
+        img.onload = function() {
+            resizeCanvas();
+            scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            translateX = (canvas.width - img.width * scale) / 2;
+            translateY = (canvas.height - img.height * scale) / 2;
+            draw();
+            document.getElementById('fileInputLabel').style.display = 'none';
+            updateInfo();
+            downloadButton.style.display = 'block';
+            setupMiniMap();
+        }
+        img.src = originalImageData;
+    }
+    reader.readAsDataURL(file);
+});
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(translateX, translateY);
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, img.width, img.height);
+    ctx.restore();
+    updateZoomPercentage();
+    updateMiniMap();
+}
+
+function updateInfo() {
+    info.textContent = `${img.width}x${img.height} px`;
+}
+
+function updateZoomPercentage() {
+    zoomPercentage.textContent = `${Math.round(scale * 100)}%`;
+    miniMap.style.display = scale > 1 ? 'block' : 'none';
+}
+
+function setupMiniMap() {
+    const maxMiniMapSize = 250;
+    const ratio = img.width / img.height;
+    if (ratio > 1) {
+        miniMap.width = maxMiniMapSize;
+        miniMap.height = maxMiniMapSize / ratio;
+    } else {
+        miniMap.height = maxMiniMapSize;
+        miniMap.width = maxMiniMapSize * ratio;
+    }
+    updateMiniMap();
+}
+
+function updateMiniMap() {
+    miniCtx.clearRect(0, 0, miniMap.width, miniMap.height);
+    miniCtx.drawImage(img, 0, 0, miniMap.width, miniMap.height);
+    
+    const viewportRect = {
+        x: -translateX / scale * (miniMap.width / img.width),
+        y: -translateY / scale * (miniMap.height / img.height),
+        width: canvas.width / scale * (miniMap.width / img.width),
+        height: canvas.height / scale * (miniMap.height / img.height)
+    };
+    
+    miniCtx.strokeStyle = 'red';
+    miniCtx.strokeRect(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height);
+}
+
+canvas.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const zoomIntensity = 0.1;
+    const wheel = e.deltaY < 0 ? 1 : -1;
+    const zoom = Math.exp(wheel * zoomIntensity);
+    
+    scale *= zoom;
+
+    translateX -= mouseX / (scale / zoom) - mouseX / scale;
+    translateY -= mouseY / (scale / zoom) - mouseY / scale;
+
+    draw();
+});
+
+canvas.addEventListener('mousedown', function(e) {
+    if (e.button === 0) {
+        isDragging = true;
+        startX = e.clientX - translateX;
+        startY = e.clientY - translateY;
+    }
+});
+
+canvas.addEventListener('mousemove', function(e) {
+    if (isDragging) {
+        translateX = e.clientX - startX;
+        translateY = e.clientY - startY;
+        draw();
+    }
+});
+
+canvas.addEventListener('mouseup', function() {
+    isDragging = false;
+});
+
+canvas.addEventListener('mouseleave', function() {
+    isDragging = false;
+});
+
+canvas.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+miniMap.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+
+downloadButton.addEventListener('click', function() {
+    if (originalImageData) {
+        const link = document.createElement('a');
+        link.download = 'image.png';
+        link.href = originalImageData;
+        link.click();
+    }
+});
+
+zoomInBtn.addEventListener('click', function() {
+    scale *= 1.1;
+    draw();
+});
+
+zoomOutBtn.addEventListener('click', function() {
+    scale /= 1.1;
+    draw();
+});
+
+// Menü toggle event listener'ını şu şekilde güncelleyin:
+menuToggle.addEventListener('click', function() {
+    if (menuOpen) {
+        menu.style.marginLeft = '-200px';
+        canvasContainer.style.marginLeft = '0';
+        menuToggle.innerHTML = '☰';
+    } else {
+        menu.style.marginLeft = '0';
+        canvasContainer.style.marginLeft = '200px';
+        menuToggle.innerHTML = '⮜';
+    }
+    menuOpen = !menuOpen;
+    setTimeout(resizeCanvas, 300); // Menü animasyonu tamamlandıktan sonra yeniden boyutlandır
+});
+
+// Reklam kapatma işlemini şu şekilde güncelleyin:
+document.querySelectorAll('.ad-close').forEach(function(closeBtn) {
+    closeBtn.addEventListener('click', function() {
+        this.parentElement.style.display = 'none';
+        setTimeout(resizeCanvas, 0); // Bir sonraki frame'de yeniden boyutlandır
+    });
+});
+    </script>
+</body>
+</html>
