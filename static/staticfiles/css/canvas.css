@@ -1,0 +1,283 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    margin: 0;
+}
+
+.navbar {
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.main-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-container {
+    flex: 1;
+    display: flex;
+}
+
+#canvas-container {
+    flex: 1;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+.main-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+.content-container {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    transition: margin-left 0.3s ease-in-out;
+}
+
+
+#canvas-container {
+    flex: 1;
+    position: relative;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+#myCanvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#fileInputLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+#fileInputLabel:hover {
+    background-color: #45a049;
+}
+
+#fileInput {
+    display: none;
+}
+
+#info {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+#downloadButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 16px;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+#downloadButton:hover {
+    background-color: #007B9A;
+}
+
+#zoomControl {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 5px;
+    border-radius: 3px;
+}
+
+#zoomControl button {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    margin: 0 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+#zoomPercentage {
+    margin: 0 10px;
+    font-size: 14px;
+}
+
+#miniMap {
+    position: absolute;
+    bottom: 50px;
+    right: 10px;
+    border: 1px solid #ccc;
+    background-color: white;
+}
+
+#menu {
+    width: 270px;
+    background-color: #333;
+    color: white;
+    padding: 60px 20px 20px 20px;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: -270px;
+    height: 100%;
+    z-index: 1000;
+    transition: left 0.3s ease-in-out;
+}
+
+#menu.open {
+    left: 0;
+}
+
+
+
+#menuToggle {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 1001;
+    font-size: 18px;
+}
+
+.ad {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ddd;
+    color: #666;
+    font-weight: bold;
+    position: relative;
+}
+
+#rightAd {
+    width: 160px;
+}
+
+#bottomAd {
+    height: 90px;
+}
+
+.ad-close {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background-color: rgba(0,0,0,0.3);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 12px;
+    border-radius: 50%;
+}
+
+@media screen and (max-width: 768px) {
+    .content-container {
+        flex-direction: column;
+    }
+
+    #rightAd {
+        width: 100%;
+        height: 100px;
+    }
+
+    #bottomAd {
+        height: 60px;
+    }
+
+    #canvas-container {
+        height: calc(100vh - 160px);
+    }
+
+    #menu {
+        width: 100%;
+        left: -100%;
+    }
+
+    #menu.open {
+        transform: translateY(0);
+    }
+
+    #menuToggle {
+        top: 5px;
+        left: 5px;
+        padding: 8px;
+        font-size: 16px;
+    }
+
+    #downloadButton {
+        top: 5px;
+        right: 5px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    #zoomControl {
+        bottom: 5px;
+        left: 5px;
+    }
+
+    #zoomControl button {
+        width: 25px;
+        height: 25px;
+        font-size: 14px;
+    }
+
+    #info {
+        bottom: 5px;
+        right: 5px;
+        font-size: 10px;
+    }
+
+    #miniMap {
+        bottom: 30px;
+        right: 5px;
+        max-width: 80px;
+        max-height: 80px;
+    }
+}

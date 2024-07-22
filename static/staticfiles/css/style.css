@@ -1,0 +1,480 @@
+        .signup-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .signup-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            height: 80%;
+            max-height: 600px;
+            z-index: 1001;
+            overflow: hidden;
+        }
+
+        .signup-modal-content {
+            display: flex;
+            height: 100%;
+        }
+
+        .signup-form {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .signup-image-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .signup-close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            z-index: 1002;
+        }
+
+        .signup-close:hover {
+            color: #ddd;
+        }
+
+        .signup-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .signup-input,
+        .signup-button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .signup-button {
+            background-color: #f2f4f5;
+            color: rgb(0, 0, 0);
+            font-family: 'Poppins';
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .signup-social-login .signup-button {
+            text-align: left;
+            padding-left: 50px;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            background-size: 25px;
+            margin-bottom: 10px;
+        }
+
+        .signup-google {
+            background-image: url('../images/google.png');
+        }
+
+        .signup-facebook {
+            background-image: url('../images/facebook.png');
+        }
+
+        .signup-apple {
+            background-image: url('../images/apple.png');
+        }
+
+        .signup-back-button {
+            background-color: #f1f3f4;
+            color: #202124;
+        }
+
+        .signup-or-divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #5f6368;
+        }
+
+        .signup-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .signup-Magicolor-logo {
+            width: 100px;
+            margin-bottom: 10px;
+        }
+
+        .signup-image-caption {
+            color: white;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        .btn-login {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .main-content {
+            padding: 50px 0;
+            text-align: center;
+            flex: 1;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .image-comparison,
+        .upload-area {
+            flex: 1;
+        }
+
+        .image-comparison {
+            display: flex;
+            position: relative;
+            width: 100%;
+            max-width: 580px;
+            height: 290px;
+            overflow: hidden;
+            border-radius: 6px;
+        }
+
+        .image-comparison img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 580px;
+            height: 290px;
+            object-fit: cover;
+        }
+
+        .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background: white;
+            cursor: ew-resize;
+        }
+
+        .slider-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slider-button::before,
+        .slider-button::after {
+            content: "";
+            position: absolute;
+            width: 2px;
+            height: 16px;
+            background: #888;
+        }
+
+        .slider-button::before {
+            transform: rotate(-45deg);
+        }
+
+        .slider-button::after {
+            transform: rotate(45deg);
+        }
+
+        .upload-area {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .topblok {
+            margin-top: 100px;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .btn-upload {
+            background: linear-gradient(to right, #4ade80, #3b82f6);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+        }
+
+        *:not(input):not(textarea) {
+            -moz-user-select: -moz-none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+            -o-user-select: none;
+            -ms-user-select: none;
+            user-select: none
+        }
+
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .topblok {
+                margin-top: 0px;
+            }
+            .image-comparison,
+            .upload-area {
+                max-width: 100%;
+                flex: 1 1 100%;
+
+            }
+
+            .signup-image-container {
+                display: none;
+            }
+
+            .signup-close {
+                color: #202124;
+            }
+        }
+
+        footer {
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        footer p {
+            margin: 0;
+            color: #666;
+        }
+
+        /* Recolor Image Page */
+        .recolor-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 150px auto;
+        }
+
+        .recolor-text {
+            max-width: 45%;
+        }
+
+        .recolor-text h1 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .recolor-text p {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .recolor-button,
+        .download-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin-top: 15px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .download-button {
+            background-color: #28a745;
+        }
+
+        .recolor-video {
+            max-width: 45%;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .recolor-video video {
+            width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            .recolor-container {
+                flex-direction: column;
+                text-align: center;
+                margin: 80px auto;
+            }
+
+            .recolor-text,
+            .recolor-video {
+                max-width: 100%;
+            }
+
+            .recolor-button,
+            .download-button {
+                margin: 10px 0;
+            }
+        }
+        /* Restore Old Family Photos Page */
+.restore-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.soldansag {
+    max-width: 45%;
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: all 0.5s ease-in-out;
+}
+
+.soldansag h1 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.soldansag p {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.try-button,
+.download-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    margin-top: 15px;
+    margin-right: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.download-button {
+    background-color: #28a745;
+}
+
+/* Animasyonlar */
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Animasyon sınıfları */
+.animate-slide-left {
+    animation: slideInFromLeft 1s forwards;
+}
+
+.animate-slide-right {
+    animation: slideInFromRight 1s forwards;
+}
+
+/* Başlangıçta animasyon sınıfları gizli */
+.recolor-text, .recolor-video {
+    opacity: 0;
+}

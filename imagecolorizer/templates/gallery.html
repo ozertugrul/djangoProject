@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free AI Photo Colorizer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/staticfiles/css/gallery.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="anasayfa.html">
+                <img src="../static/staticfiles/images/logo.png" alt="Fotor" height="30">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Photo Editing Tools
+                        </a>
+                    </li>
+                    <!-- Add other menu items similarly -->
+                </ul>
+                <div class="d-flex">
+                    <a href="/account" class="btn btn-outline-secondary me-2">[username]</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h1>Your Gallery</h1>
+            <p class="subtitle">Archive of the images you colored.</p>
+
+            <div class="gallery-controls">
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="text" class="form-control" placeholder="Search images...">
+                    <button class="btn btn-outline-secondary" type="button">Search</button>
+                </div>
+                <select class="form-select" style="max-width: 200px;">
+                    <option selected>Sort by...</option>
+                    <option value="1">Date (Newest)</option>
+                    <option value="2">Date (Oldest)</option>
+                    <option value="3">Name (A-Z)</option>
+                    <option value="4">Name (Z-A)</option>
+                </select>
+            </div>
+
+            <div class="gallery-grid">
+                <!-- Example gallery items -->
+                <div class="gallery-item">
+                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 1">
+                    <h3>Colorized Image 1</h3>
+                    <p>Created on: 2024-07-19</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 2">
+                    <h3>Colorized Image 2</h3>
+                    <p>Created on: 2024-07-18</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 3">
+                    <h3>Colorized Image 3</h3>
+                    <p>Created on: 2024-07-17</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 1">
+                    <h3>Colorized Image 4</h3>
+                    <p>Created on: 2024-07-19</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 2">
+                    <h3>Colorized Image 5</h3>
+                    <p>Created on: 2024-07-18</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 3">
+                    <h3>Colorized Image 6</h3>
+                    <p>Created on: 2024-07-17</p>
+                </div>
+                <!-- Add more gallery items as needed -->
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Free AI Photo Colorizer. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
