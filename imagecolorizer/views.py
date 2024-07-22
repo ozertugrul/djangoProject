@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
+from torchvision.utils import save_image
 from django.urls import reverse
 import uuid
 from .forms import ImageUploadForm
@@ -90,10 +91,12 @@ def colorize_image(image_path):
         colorized_image = model.generator(image_tensor)
 
     # Tensörü PIL görüntüsüne dönüştürme
+    sample_output = colorized_image.squeeze(0).cpu()
+    save_image(sample_output,image_path.replace('.jpg', '_colorized.jpg'), normalize=True)
     colorized_image = transforms.ToPILImage()(colorized_image.squeeze(0).cpu())
 
     # Renklendirilmiş görüntüyü kaydetme
     colorized_path = image_path.replace('.jpg', '_colorized.jpg')
-    colorized_image.save(colorized_path)
+    #colorized_image.save(colorized_path)
 
     return colorized_path
