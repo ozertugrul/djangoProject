@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/staticfiles/css/canvas.css">
+    <title>Gelişmiş Resim Görüntüleyici</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="../">
+                <img src="../static/staticfiles/images/logo.png" alt="Fotor" height="30">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Photo Editing Tools
+                        </a>
+                    </li>
+                    <!-- Add other menu items similarly -->
+                </ul>
+                <div class="d-flex">
+                    <a href="#" class="btn btn-outline-secondary me-2">[username]</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="content-container">
+            <button id="menuToggle">☰</button>
+            <div id="menu">
+
+                <h3>MagiColorize </h3><br>
+                <h4>Tools</h4>
+                <ul>
+                    <a href=""><li>Background Remover</li></a>
+                    <a href=""><li>Colorizer</li></a>
+                </ul>
+            </div>
+            <div id="canvas-container" style="margin-left: 0px !important;">
+                <canvas id="myCanvas"></canvas>
+                <img id="uploadedImage" src="{{ colorized_url }}" alt="Uploaded Image" style="display:none;">
+                <label for="fileInput" id="fileInputLabel">Resim Seç</label>
+                <input type="file" id="fileInput" accept="image/*">
+                <div id="info"></div>
+                <div id="zoomControl" style="display: none;">
+                    <button id="zoomOutBtn">-</button>
+                    <span id="zoomPercentage">100%</span>
+                    <button id="zoomInBtn">+</button>
+                </div>
+                <button id="downloadButton">İndir</button>
+                <canvas id="miniMap" style="display: none;"></canvas>
+            </div>
+            <div id="rightAd" class="ad">
+                Reklam
+                <div class="ad-close">✕</div>
+            </div>
+        </div>
+        <div id="bottomAd" class="ad">
+            Reklam
+            <div class="ad-close">✕</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const fileInput = document.getElementById('fileInput');
+        const info = document.getElementById('info');
+        const downloadButton = document.getElementById('downloadButton');
+        const zoomPercentage = document.getElementById('zoomPercentage');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const miniMap = document.getElementById('miniMap');
+        const miniCtx = miniMap.getContext('2d');
+        const menuToggle = document.getElementById('menuToggle');
+        const menu = document.getElementById('menu');
+        const canvasContainer = document.getElementById('canvas-container');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const MIN_SCALE = 0.25; // %10
+        const MAX_SCALE = 2.5;   // %250
+
+        let img = new Image();
+        let scale = 1;
+        let isDragging = false;
+        let startX, startY, translateX = 0, translateY = 0;
+        let originalImageData;
+        let menuOpen = false;
+
+        function loadImage(src) {
+            img.onload = function () {
+                resizeCanvas();
+                scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                translateX = (canvas.width - img.width * scale) / 2;
+                translateY = (canvas.height - img.height * scale) / 2;
+                draw();
+                document.getElementById('fileInputLabel').style.display = 'none';
+                updateInfo();
+                downloadButton.style.display = 'block';
+                document.getElementById('zoomControl').style.display = 'flex';
+                setupMiniMap();
+                updateMiniMap();
+            }
+            img.src = src;
+        }
+
+        if (uploadedImage.src) {
+            loadImage(uploadedImage.src);
+        }
+
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                originalImageData = event.target.result;
+                loadImage(originalImageData);
+            }
+            reader.readAsDataURL(file);
+        });
+
+        function resizeCanvas() {
+            const container = document.getElementById('canvas-container');
+            const menuWidth = menu.classList.contains('open') ? (window.innerWidth <= 768 ? window.innerWidth : 300) : 0;
+
+            canvas.width = container.clientWidth - menuWidth;
+            canvas.height = container.clientHeight;
+            canvas.style.width = `${canvas.width}px`;
+            canvas.style.height = `${canvas.height}px`;
+
+            if (img.src) {
+                const scaleX = canvas.width / img.width;
+                const scaleY = canvas.height / img.height;
+                scale = Math.min(scaleX, scaleY);
+
+                translateX = (canvas.width - img.width * scale) / 2;
+                translateY = (canvas.height - img.height * scale) / 2;
+            }
+
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function setScale(newScale, centerX, centerY) {
+            const oldScale = scale;
+            scale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+
+            if (scale !== oldScale && centerX !== undefined && centerY !== undefined) {
+                // Mouse pozisyonuna göre zoom yap
+                const zoomRatio = scale / oldScale;
+                translateX = centerX - (centerX - translateX) * zoomRatio;
+                translateY = centerY - (centerY - translateY) * zoomRatio;
+            }
+
+            // Görüntünün sınırları dışına çıkmasını engelle
+            const maxTranslateX = Math.max(0, (img.width * scale - canvas.width) / 2);
+            const maxTranslateY = Math.max(0, (img.height * scale - canvas.height) / 2);
+
+            translateX = Math.min(Math.max(translateX, -maxTranslateX), maxTranslateX);
+            translateY = Math.min(Math.max(translateY, -maxTranslateY), maxTranslateY);
+
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (img.src) {
+                ctx.save();
+                ctx.translate(canvas.width / 2 + translateX, canvas.height / 2 + translateY);
+                ctx.scale(scale, scale);
+                ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
+                ctx.restore();
+            }
+
+            updateZoomPercentage();
+            updateMiniMap();
+        }
+
+        function updateInfo() {
+            info.textContent = `${img.width}x${img.height} px`;
+        }
+
+        function updateZoomPercentage() {
+            zoomPercentage.textContent = `${Math.round(scale * 100)}%`;
+            miniMap.style.display = scale > 1 ? 'block' : 'none';
+        }
+
+        function setupMiniMap() {
+            const maxMiniMapSize = 250;
+            const ratio = img.width / img.height;
+            if (ratio > 1) {
+                miniMap.width = maxMiniMapSize;
+                miniMap.height = maxMiniMapSize / ratio;
+            } else {
+                miniMap.height = maxMiniMapSize;
+                miniMap.width = maxMiniMapSize * ratio;
+            }
+            // updateMiniMap fonksiyonu artık görünürlüğü kontrol edecek
+        }
+
+        function updateMiniMap() {
+            const miniMap = document.getElementById('miniMap');
+
+            if (scale > 1) {
+                miniMap.style.display = 'block';
+                miniCtx.clearRect(0, 0, miniMap.width, miniMap.height);
+                miniCtx.drawImage(img, 0, 0, miniMap.width, miniMap.height);
+
+                const viewportRect = {
+                    x: -translateX / scale * (miniMap.width / img.width),
+                    y: -translateY / scale * (miniMap.height / img.height),
+                    width: canvas.width / scale * (miniMap.width / img.width),
+                    height: canvas.height / scale * (miniMap.height / img.height)
+                };
+
+                miniCtx.strokeStyle = 'red';
+                miniCtx.strokeRect(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height);
+            } else {
+                miniMap.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('resize', function () {
+            if (menu.classList.contains('open')) {
+                contentContainer.style.marginLeft = window.innerWidth <= 768 ? '100%' : '270px';
+            }
+            resizeCanvas();
+        });
+
+        canvas.addEventListener('wheel', function (e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - canvas.width / 2;
+            const mouseY = e.clientY - rect.top - canvas.height / 2;
+
+            const zoomIntensity = 0.1;
+            const wheel = e.deltaY < 0 ? 1 : -1;
+            const zoom = Math.exp(wheel * zoomIntensity);
+
+            const newScale = scale * zoom;
+
+            setScale(newScale, mouseX, mouseY);
+        });
+
+        canvas.addEventListener('mousedown', function (e) {
+            if (e.button === 0) {
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            }
+        });
+
+        canvas.addEventListener('mousemove', function (e) {
+            if (isDragging) {
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function () {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', function () {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        });
+
+        miniMap.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        });
+
+        downloadButton.addEventListener('click', function () {
+            if (img.src) {
+                const link = document.createElement('a');
+                link.download = 'image.png';
+                link.href = img.src;
+                link.click();
+            }
+        });
+
+        function zoomFromCenter(zoomFactor) {
+            const newScale = scale * zoomFactor;
+            setScale(newScale);
+        }
+
+        zoomInBtn.addEventListener('click', function () {
+            zoomFromCenter(1.1);
+        });
+
+        zoomOutBtn.addEventListener('click', function () {
+            zoomFromCenter(1 / 1.1);
+        });
+
+        // Menü toggle event listener'ını şu şekilde güncelleyin:
+        const contentContainer = document.querySelector('.content-container');
+
+        menuToggle.addEventListener('click', function () {
+            menu.classList.toggle('open');
+            menuToggle.innerHTML = menu.classList.contains('open') ? '⮜' : '☰';
+
+            if (menu.classList.contains('open')) {
+                contentContainer.style.marginLeft = window.innerWidth <= 768 ? '100%' : '270px';
+            } else {
+                contentContainer.style.marginLeft = '0';
+            }
+
+            setTimeout(resizeCanvas, 300);
+        });
+
+        // Reklam kapatma işlemini şu şekilde güncelleyin:
+        document.querySelectorAll('.ad-close').forEach(function (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                this.parentElement.style.display = 'none';
+                setTimeout(resizeCanvas, 0);
+            });
+        });
+
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                originalImageData = event.target.result;
+                img.onload = function () {
+                    resizeCanvas();
+                    scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                    translateX = (canvas.width - img.width * scale) / 2;
+                    translateY = (canvas.height - img.height * scale) / 2;
+                    draw();
+                    document.getElementById('fileInputLabel').style.display = 'none';
+                    updateInfo();
+                    downloadButton.style.display = 'block';
+                    document.getElementById('zoomControl').style.display = 'flex';
+                    setupMiniMap();
+                    updateMiniMap(); // Minimap'i güncelle ve gerekirse göster
+                }
+                img.src = originalImageData;
+            }
+            reader.readAsDataURL(file);
+        });
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,274 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Photo Colorizer</title>
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/staticfiles/css/style.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="">
+                <img src="static/staticfiles/images/logo.png" alt="Magicolor" height="30">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Photo Editing Tools
+                        </a>
+                    </li>
+                    <!-- Add other menu items similarly -->
+                </ul>
+                <div class="d-flex">
+                    <a href="#" class="btn btn-outline-secondary me-2" onclick="openSignupModal()">Sign up</a>
+                    <a href="/mygallery" class="btn btn-login">Log in</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container topblok">
+            <h1>AI Photo Colorizer</h1>
+            <p class="subtitle">Convert black and white photos to color online and turn your old photo into a
+                colorful reality.</p>
+
+            <div class="flex-container">
+                <div class="image-comparison">
+                    <img src="static/staticfiles/images/yeni.png" alt="Eski hali" oncontextmenu="return false"
+                        onselectstart="return false" ondragstart="return false">
+                    <div class="image-overlay">
+                        <img src="static/staticfiles/images/eski.png" alt="Yeni hali" oncontextmenu="return false"
+                            onselectstart="return false" ondragstart="return false">
+                    </div>
+                    <div class="slider">
+                        <div class="slider-button"></div>
+                    </div>
+                </div>
+
+                <div class="upload-area">
+                    <div class="upload-icon">⬆️</div>
+                    <p>Drag image here or click to upload</p>
+                    <form id="uploadForm" action="" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="file" name="image" id="imageInput" style="display: none;">
+                        <button type="button" class="btn btn-upload" onclick="document.getElementById('imageInput').click();">Upload Image</button>
+                        <input type="submit" style="display: none;" id="submitButton">
+                    </form>
+                    
+                </div>
+                <script>
+        document.getElementById('imageInput').addEventListener('change', function() {
+            document.getElementById('submitButton').click();
+        });
+    </script>
+            </div>
+        </div>
+        <div class="recolor-container" id="recolor1">
+            <div class="recolor-text">
+                <h1>Recolor An Image or Portraits in Just One Click</h1>
+                <p>The AI Photo Colorizer automatically converts your old photos to color.</p>
+                <p>By employing AI colorization algorithms, the AI tech identifies portraits and objects within the
+                    photo, infusing them with precise and vibrant colors.</p>
+                <button class="recolor-button">Recolor Images</button>
+                <button class="download-button">Download App</button>
+            </div>
+            <div class="recolor-video">
+                <video autoplay loop muted>
+                    <source src="static/staticfiles/video/video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+
+        <div class="recolor-container" id="recolor2">
+            <div class="recolor-video">
+                <video autoplay loop muted>
+                    <source src="static/staticfiles/video/video.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="recolor-text">
+                <h1>Recolor An Image or Portraits in Just One Click</h1>
+                <p>The AI Photo Colorizer automatically converts your old photos to color.</p>
+                <p>By employing AI colorization algorithms, the AI tech identifies portraits and objects within the
+                    photo, infusing them with precise and vibrant colors.</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="signup-modal-overlay" id="signupOverlay"></div>
+    <div class="signup-modal" id="signupModal">
+        <span class="signup-close" onclick="closeSignupModal()">&times;</span>
+        <div class="signup-modal-content">
+            <div class="signup-form" id="mainSignupForm">
+                <h2 class="signup-title">Get Started with Magicolor</h2>
+                <div class="signup-social-login">
+                    <button class="signup-button signup-google">Continue with Google</button>
+                    <button class="signup-button signup-facebook">Continue with Facebook</button>
+                    <button class="signup-button signup-apple">Continue with Apple</button>
+                </div>
+                <div class="signup-or-divider">or</div>
+                <button class="signup-button" onclick="showEmailSignupForm()">Continue with Email</button>
+            </div>
+            <div class="signup-form" id="emailSignupForm" style="display:none;">
+                <h2 class="signup-title">Continue with Email</h2>
+                <p>Enter your email to see if you have an account. If not, we will help you create a new account.</p>
+                <input type="email" placeholder="Please enter your email address." id="signupEmailInput"
+                    class="signup-input" required>
+                <button style="background-color: #018554 !important;" class="signup-button"
+                    onclick="continueWithSignupEmail()">Continue</button>
+                <button class="signup-button signup-back-button" onclick="showMainSignupForm()">Back</button>
+            </div>
+
+            <!-- New password modal -->
+            <div class="signup-form" id="passwordSignupForm" style="display:none;">
+                <h2 class="signup-title">Enter Password</h2>
+                <p>Please enter your password to continue.</p>
+                <input type="password" placeholder="Enter your password" id="signupPasswordInput" class="signup-input"
+                    required>
+                <button style="background-color: #018554 !important;" class="signup-button"
+                    onclick="loginWithPassword()">Log In</button>
+                <button class="signup-button signup-back-button" onclick="showEmailSignupForm()">Back</button>
+            </div>
+
+            <div class="signup-image-container">
+                <img src="static/staticfiles/images/login.png" alt="Northern Lights"
+                    style="width:100%; height:100%; object-fit:cover;">
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Free AI Photo Colorizer. All rights reserved.</p>
+        </div>
+    </footer>
+    <script>
+        function openSignupModal() {
+            document.getElementById('signupOverlay').style.display = 'block';
+            document.getElementById('signupModal').style.display = 'block';
+        }
+
+        function closeSignupModal() {
+            document.getElementById('signupOverlay').style.display = 'none';
+            document.getElementById('signupModal').style.display = 'none';
+        }
+
+        function showEmailSignupForm() {
+            document.getElementById('mainSignupForm').style.display = 'none';
+            document.getElementById('emailSignupForm').style.display = 'block';
+            document.getElementById('passwordSignupForm').style.display = 'none';
+        }
+
+        function showMainSignupForm() {
+            document.getElementById('mainSignupForm').style.display = 'block';
+            document.getElementById('emailSignupForm').style.display = 'none';
+            document.getElementById('passwordSignupForm').style.display = 'none';
+        }
+
+        function continueWithSignupEmail() {
+            let email = document.getElementById('signupEmailInput').value;
+            if (email) {
+                document.getElementById('emailSignupForm').style.display = 'none';
+                document.getElementById('passwordSignupForm').style.display = 'block';
+            } else {
+                alert("Please enter an email address.");
+            }
+        }
+
+        function loginWithPassword() {
+            let email = document.getElementById('signupEmailInput').value;
+            let password = document.getElementById('signupPasswordInput').value;
+            if (password) {
+                alert("Logging in with email: " + email + " and password: " + password);
+                // Here you would typically send the login information to your server
+                closeSignupModal();
+            } else {
+                alert("Please enter a password.");
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const container = document.querySelector('.image-comparison');
+        const overlay = document.querySelector('.image-overlay');
+        const slider = document.querySelector('.slider');
+
+        let isDown = false;
+
+        function getPosition(event) {
+            return event.type.includes('touch') ? event.touches[0].clientX : event.clientX;
+        }
+
+        function move(e) {
+            if (!isDown) return;
+
+            const rect = container.getBoundingClientRect();
+            const x = getPosition(e) - rect.left;
+            const percent = Math.min(Math.max(x / rect.width * 100, 0), 100);
+
+            overlay.style.width = `${percent}%`;
+            slider.style.left = `${percent}%`;
+        }
+
+        slider.addEventListener('mousedown', () => isDown = true);
+        slider.addEventListener('touchstart', () => isDown = true);
+
+        window.addEventListener('mouseup', () => isDown = false);
+        window.addEventListener('touchend', () => isDown = false);
+
+        window.addEventListener('mousemove', move);
+        window.addEventListener('touchmove', move);
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const options = {
+                root: null, // viewport'u referans olarak alır
+                rootMargin: '0px',
+                threshold: 0.1 // öğenin en az %10'u görünür olmalı
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const container = entry.target;
+                        const text = container.querySelector('.recolor-text');
+                        const video = container.querySelector('.recolor-video');
+
+                        if (container.id === 'recolor1') {
+                            text.classList.add('animate-slide-left');
+                            video.classList.add('animate-slide-right');
+                        } else if (container.id === 'recolor2') {
+                            text.classList.add('animate-slide-right');
+                            video.classList.add('animate-slide-left');
+                        }
+
+                        // Öğeyi gözlemden kaldır
+                        observer.unobserve(container);
+                    }
+                });
+            }, options);
+
+            // Her bir container'ı gözlem altına al
+            document.querySelectorAll('.recolor-container').forEach(container => {
+                observer.observe(container);
+            });
+        });
+
+    </script>
+</body>
+
+</html>
