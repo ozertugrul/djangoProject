@@ -63,7 +63,7 @@ def account(request):
 import torch
 from PIL import Image
 from torchvision import transforms
-from .models import CWGANNN  # Model sınıfınızı import edin
+from .model import CWGANNN  # Model sınıfınızı import edin
 
 def colorize_image(image_path):
     # Model yükleme
