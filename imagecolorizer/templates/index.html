@@ -64,16 +64,17 @@
                     <form id="uploadForm" action="" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         <input type="file" name="image" id="imageInput" style="display: none;">
-                        <button type="button" class="btn btn-upload" onclick="document.getElementById('imageInput').click();">Upload Image</button>
+                        <button type="button" class="btn btn-upload"
+                            onclick="document.getElementById('imageInput').click();">Upload Image</button>
                         <input type="submit" style="display: none;" id="submitButton">
                     </form>
-                    
+
                 </div>
                 <script>
-        document.getElementById('imageInput').addEventListener('change', function() {
-            document.getElementById('submitButton').click();
-        });
-    </script>
+                    document.getElementById('imageInput').addEventListener('change', function () {
+                        document.getElementById('submitButton').click();
+                    });
+                </script>
             </div>
         </div>
         <div class="recolor-container" id="recolor1">
@@ -156,6 +157,7 @@
         </div>
     </footer>
     <script>
+
         function openSignupModal() {
             document.getElementById('signupOverlay').style.display = 'block';
             document.getElementById('signupModal').style.display = 'block';
@@ -176,29 +178,152 @@
             document.getElementById('mainSignupForm').style.display = 'block';
             document.getElementById('emailSignupForm').style.display = 'none';
             document.getElementById('passwordSignupForm').style.display = 'none';
+            backMainSignupForm();
+        }
+        function showMailPageSignupForm() {
+            document.getElementById('mainSignupForm').style.display = 'none';
+            document.getElementById('emailSignupForm').style.display = 'block';
+            document.getElementById('passwordSignupForm').style.display = 'none';
         }
 
         function continueWithSignupEmail() {
             let email = document.getElementById('signupEmailInput').value;
-            if (email) {
-                document.getElementById('emailSignupForm').style.display = 'none';
-                document.getElementById('passwordSignupForm').style.display = 'block';
+            let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (email && emailRegex.test(email)) {
+                fetch('/check_email/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: `email=${email}`
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            // E-posta kayıtlı, şifre formunu göster
+                            document.getElementById('emailSignupForm').style.display = 'none';
+                            document.getElementById('passwordSignupForm').style.display = 'block';
+                        } else {
+                            // E-posta kayıtlı değil, kayıt formunu göster
+                            showSignupForm(email);
+                        }
+                    });
             } else {
-                alert("Please enter an email address.");
+                alert("Lütfen geçerli bir e-posta adresi girin.");
             }
         }
 
-        function loginWithPassword() {
-            let email = document.getElementById('signupEmailInput').value;
-            let password = document.getElementById('signupPasswordInput').value;
-            if (password) {
-                alert("Logging in with email: " + email + " and password: " + password);
-                // Here you would typically send the login information to your server
-                closeSignupModal();
-            } else {
-                alert("Please enter a password.");
-            }
+        function showSignupForm(email) {
+            // Burada yeni bir kayıt formu oluşturun veya mevcut formu güncelleyin
+            let signupForm = `
+            <h2 class="signup-title">Create a New Account</h2>
+            <input type="email" value="${email}" id="newSignupEmail" class="signup-input" readonly>
+            <input type="password" placeholder="Enter your password" id="newSignupPassword" class="signup-input" required>
+            <input type="password" placeholder="Confirm your password" id="newSignupConfirmPassword" class="signup-input" required>
+            <input type="text" placeholder="Enter your name" id="newSignupName" class="signup-input" required>
+            <input type="text" placeholder="Enter your surname" id="newSignupSurname" class="signup-input" required>
+            <button onclick="submitSignup()" class="signup-button">Sign Up</button>
+            <button onclick="showMainSignupForm()" class="signup-button">Back</button>
+        `;
+            document.getElementById('emailSignupForm').innerHTML = signupForm;
         }
+
+        function backMainSignupForm(email) {
+            // Burada yeni bir kayıt formu oluşturun veya mevcut formu güncelleyin
+            let signupForm = `
+            <h2 class="signup-title">Continue with Email</h2>
+                <p>Enter your email to see if you have an account. If not, we will help you create a new account.</p>
+                <input type="email" placeholder="Please enter your email address." id="signupEmailInput"
+                    class="signup-input" required>
+                <button style="background-color: #018554 !important;" class="signup-button"
+                    onclick="continueWithSignupEmail()">Continue</button>
+                <button class="signup-button signup-back-button" onclick="showMainSignupForm()">Back</button>
+        `;
+            document.getElementById('emailSignupForm').innerHTML = signupForm;
+        }
+
+        function submitSignup() {
+            let email = document.getElementById('newSignupEmail').value;
+            let password = document.getElementById('newSignupPassword').value;
+            let confirmPassword = document.getElementById('newSignupConfirmPassword').value;
+            let name = document.getElementById('newSignupName').value;
+            let surname = document.getElementById('newSignupSurname').value;
+
+            // Tüm alanların dolu olduğunu kontrol et
+            if (!email || !password || !confirmPassword || !name || !surname) {
+                alert("Lütfen tüm alanları doldurun.");
+                return;
+            }
+
+            // E-posta formatını kontrol et
+            let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert("Lütfen geçerli bir e-posta adresi girin.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Şifreler eşleşmiyor." + password + confirmPassword);
+                return;
+            }
+
+            // Şifre gücünü kontrol et (örnek: en az 8 karakter)
+            if (password.length < 8) {
+                alert("Şifre en az 8 karakter uzunluğunda olmalıdır.");
+
+                return;
+            }
+
+            fetch('signup/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&confirm_password=${encodeURIComponent(confirmPassword)}&name=${encodeURIComponent(name)}&surname=${encodeURIComponent(surname)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        closeSignupModal();
+                        location.reload();
+                    } else {
+                        if (typeof data.errors === 'object') {
+                            let errorMessage = "";
+                            for (let field in data.errors) {
+                                errorMessage += `${field}: ${data.errors[field].join(', ')}\n`;
+                            }
+                            alert(errorMessage);
+                        } else {
+                            alert("Kayıt işlemi başarısız oldu. Lütfen tekrar deneyin.");
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Bir hata oluştu. Lütfen daha sonra tekrar deneyin.");
+                });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
