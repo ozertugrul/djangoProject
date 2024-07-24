@@ -4,9 +4,20 @@ from django.conf import settings
 from torchvision.utils import save_image
 from django.urls import reverse
 import uuid
-from .forms import ImageUploadForm
 import os
 from PIL import Image, ImageOps
+import torch
+from torchvision import transforms
+from .model import CWGANNN  # Model sınıfınızı import edin
+from django.http import JsonResponse
+from .models import Users
+from django.contrib.auth.hashers import make_password, check_password
+from .forms import UserCreationForm, ImageUploadForm
+
+
+
+
+
 
 def index(request):
     if request.method == 'POST':
@@ -60,10 +71,45 @@ def mygallery(request):
 def account(request):
     return render(request, 'account.html')
 
-import torch
-from PIL import Image
-from torchvision import transforms
-from .model import CWGANNN  # Model sınıfınızı import edin
+def check_email(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        user_exists = Users.objects.filter(email=email).exists()
+        return JsonResponse({'exists': user_exists})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = Users(
+                email=form.cleaned_data['email'],
+                password=make_password(form.cleaned_data['password']),
+                confirm_password=make_password(form.cleaned_data['confirm_password']),
+                name=form.cleaned_data['name'],
+                surname=form.cleaned_data['surname']
+            )
+            user.save()
+            return JsonResponse({'success': True, 'message': 'Account created successfully'})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+def user_login(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        try:
+            user = Users.objects.get(email=email)
+            if check_password(password, user.password):
+                request.session['user_id'] = user.id
+                return JsonResponse({'success': True, 'message': 'Logged in successfully'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid credentials'})
+        except Users.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User does not exist'})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
 
 def colorize_image(image_path):
     # Model yükleme

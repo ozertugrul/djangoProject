@@ -6,3 +6,4 @@ class Users(models.Model):
     password = models.CharField(max_length=50)
     name = models.CharField(max_length=70)
     surname = models.CharField(max_length=70)
+
