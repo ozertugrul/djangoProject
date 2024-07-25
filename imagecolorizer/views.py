@@ -39,10 +39,22 @@ def editor(request, image_id):
             estimated_wait_time = (position - 1) * PROCESSING_TIME  # Estimated wait time in seconds
         return render(request, 'waiting.html', {'position': position, 'estimated_wait_time': estimated_wait_time})
 def mygallery(request):
-    return render(request, 'gallery.html')
+    user_id = request.session.get('user_id')
+    # Kullanıcı session yoksa index.html sayfasına yönlendirin
+    if not user_id:
+        return redirect('index') 
+    
+    user = get_object_or_404(Users, id=user_id)
+    return render(request, 'gallery.html', {'username': user.name})
 
 def account(request):
-    return render(request, 'account.html')
+    user_id = request.session.get('user_id')
+    # Kullanıcı session yoksa index.html sayfasına yönlendirin
+    if not user_id:
+        return redirect('index') 
+    
+    user = get_object_or_404(Users, id=user_id)
+    return render(request, 'account.html', {'username': user.name})
 
 def check_email(request):
     if request.method == 'POST':
@@ -121,3 +133,13 @@ def homepage(request):
 def logout(request):
     auth_logout(request)
     return redirect('index')
+
+def settings(request):
+    user_id = request.session.get('user_id')
+    # Kullanıcı session yoksa index.html sayfasına yönlendirin
+    if not user_id:
+        return redirect('index') 
+    
+    user = get_object_or_404(Users, id=user_id)
+
+    return render(request, 'settings.html', {'username': user.name})
