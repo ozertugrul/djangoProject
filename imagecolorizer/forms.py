@@ -1,9 +1,11 @@
 # imagecolorizer/forms.py
 from django import forms
-from .models import Users
+from .models import UploadedImage
 
-class ImageUploadForm(forms.Form):
-    image = forms.ImageField(label='Upload a grayscale image')
+class ImageUploadForm(forms.ModelForm):
+    class Meta:
+        model = UploadedImage
+        fields = ['image']
 
 class UserCreationForm(forms.Form):
     email = forms.EmailField(max_length=70)
