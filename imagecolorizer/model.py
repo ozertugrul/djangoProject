@@ -204,10 +204,10 @@ class PerceptualLoss(nn.Module):
 class StyleLoss(nn.Module):
     def __init__(self):
         super(StyleLoss, self).__init__()
-        # Style Loss implementasyonu
+        # Style Loss implementasyonu  
 
     def forward(self, x, y):
-        # Style Loss hesaplaması
+        # Style Loss hesaplaması 
         return torch.tensor(0.0)  # Geçici olarak 0 döndürüyoruz
 
 class NSGANLoss(nn.Module):
