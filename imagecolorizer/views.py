@@ -67,6 +67,7 @@ def signup(request):
                 name=name,
                 surname=surname
             )
+            request.session['user_id'] = user.id
             return JsonResponse({'success': True, 'message': 'Account created successfully', 'redirect_url': 'homepage'})
         else:
             return JsonResponse({'success': False, 'message': 'All fields are required'})
@@ -93,4 +94,18 @@ def user_login(request):
 
 def homepage(request):
     user_id = request.session.get('user_id')
-    return render(request, 'homepage.html', {'user_id': user_id})
+    if request.method == 'POST':
+        form = ImageUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            image_instance = form.save()
+            
+            with queue_lock:
+                processing_queue.append(image_instance)
+                image_instance.queue_position = len(processing_queue)
+                image_instance.save()
+
+            threading.Thread(target=process_image, args=(image_instance.id,)).start()
+            return redirect('editor', image_instance.id)
+    else:
+        form = ImageUploadForm()
+    return render(request, 'homepage.html', {'form': form, 'user_id': user_id})
