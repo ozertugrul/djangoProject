@@ -1,13 +1,168 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
+
 <head>
-    <title>Waiting</title>
-    <meta http-equiv="refresh" content="1"> <!-- Sayfa her 5 saniyede bir yenilenecek -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../static/staticfiles/css/canvas.css">
+    <title>Magicolorize | Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
 <body>
-    <h1>Waiting for Processing</h1>
-    <p>Your current position in the queue: {{ position }}</p>
-    <p>Estimated wait time: {{ estimated_wait_time }} seconds</p>
-    <p>Processing... Please wait.</p>
+    <style>
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+    
+        .popup-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            max-width: 400px;
+        }
+    
+        .progress-bar {
+            background-color: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    
+        .progress {
+            background-color: #4CAF50;
+            width: 0;
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s linear;
+        }
+    
+        #upgradeButton {
+            background-color: #FFA500;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    
+        .fas {
+            color: #4CAF50;
+        }
+    </style>
+    <div id="waitingPopup" class="popup-overlay">
+        <div class="popup-content">
+            <p><i class="fas fa-user-clock"></i> Neredeyse orada, sıradaki görev sayısı <span id="queueNumber">{{ position }}</span>, tahmini bekleme süresi <span id="waitTime">00:30:00</span>...</p>
+            <div class="progress-bar">
+                <div class="progress"></div>
+            </div>
+            <p>Şu anda yoğun talep nedeniyle sıraya girdiniz. Yeniden yükleme veya yenileme yapmanıza gerek yoktur.</p>
+            <p>Hesaba yükseltme yaparak daha hızlı işlem yapabilir, sıra beklemeden!</p>
+            <button id="upgradeButton">Şimdi Yükselt</button>
+        </div>
+    </div>
+
+
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="../../">
+                <img src="../../static/staticfiles/images/logo.png" alt="Fotor" height="30">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Photo Editing Tools
+                        </a>
+                    </li>
+                    <!-- Add other menu items similarly -->
+                </ul>
+                <div class="d-flex">
+                    <button id="downloadButton">İndir</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="content-container">
+            <button id="menuToggle">☰</button>
+            <div id="menu">
+
+                <h3>MagiColorize </h3><br>
+                <h4>Tools</h4>
+                <ul>
+                    <a href=""><li>Background Remover</li></a>
+                    <a href=""><li>Colorizer</li></a>
+                </ul>
+            </div>
+            <div id="canvas-container" style="margin-left: 0px !important;">
+                <canvas id="myCanvas"></canvas>
+                <label for="fileInput" id="fileInputLabel">Resim Seç</label>
+                <input type="file" id="fileInput" accept="image/*">
+                <div id="info"></div>
+                <div id="zoomControl" style="display: none;">
+                    <button id="zoomOutBtn">-</button>
+                    <span id="zoomPercentage">100%</span>
+                    <button id="zoomInBtn">+</button>
+                </div>
+                <canvas id="miniMap" style="display: none;"></canvas>
+            </div>
+            <div id="rightAd" class="ad">
+                Reklam
+                <div class="ad-close">✕</div>
+            </div>
+        </div>
+        <div id="bottomAd" class="ad">
+            Reklam
+            <div class="ad-close">✕</div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Başlangıç değerleri
+        let totalSeconds = {{ estimated_wait_time }} + 10; // 10 saniye
+        const totalTime = totalSeconds;
+        let queueNumber = {{ position }};
+    
+        function updateTimer() {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            document.getElementById('waitTime').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // İlerleme çubuğunu güncelle
+            const progressPercentage = 100 - (totalSeconds / totalTime * 100);
+            document.querySelector('.progress').style.width = `${progressPercentage}%`;
+    
+            if (totalSeconds > 0) {
+                totalSeconds--;
+                setTimeout(updateTimer, 1000);
+            } else {
+                // Süre dolduğunda yapılacak işlemler
+                document.getElementById('waitTime').textContent = "00:00";
+                document.querySelector('.progress').style.width = "100%";
+                window.location.reload();
+            }
+        }
+    
+        // Sayaç ve ilerleme çubuğunu başlat
+        updateTimer();
+    </script>
 </body>
 </html>

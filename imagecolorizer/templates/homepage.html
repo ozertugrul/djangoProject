@@ -4,10 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Photo Colorizer</title>
+    <title>Magicolorize | Homepage</title>
     <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
     <link rel="stylesheet" href="../static/staticfiles/css/style.css">
 </head>
 
@@ -32,10 +35,17 @@
                     <!-- Add other menu items similarly -->
                 </ul>
                 <div class="d-flex">
-                    <p>
-
-                        {{user_id}}
-                    </p>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
+                            {{user_id}}
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                          <a class="dropdown-item" href="#">Acconut</a>
+                          <a class="dropdown-item" href="#">Gallery</a>
+                          <a class="dropdown-item" href="#">Settings</a>
+                          <a class="dropdown-item" href="#">Logout</a>
+                        </div>
+                      </div>
                 </div>
             </div>
         </div>
@@ -60,23 +70,79 @@
                     </div>
                 </div>
 
-                <div class="upload-area">
+                <div class="upload-area" id="drop-area">
                     <div class="upload-icon">⬆️</div>
                     <p>Drag image here or click to upload</p>
                     <form id="uploadForm" action="" method="post" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <input type="file" name="image" id="imageInput" style="display: none;">
+                        <input type="file" name="image" id="imageInput" style="display: none;" accept="image/*">
                         <button type="button" class="btn btn-upload"
                             onclick="document.getElementById('imageInput').click();">Upload Image</button>
                         <input type="submit" style="display: none;" id="submitButton">
                     </form>
-
                 </div>
                 <script>
+                    const dropArea = document.getElementById('drop-area');
+                    const imageInput = document.getElementById('imageInput');
+                    const uploadForm = document.getElementById('uploadForm');
+
+                    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                        dropArea.addEventListener(eventName, preventDefaults, false);
+                    });
+
+                    function preventDefaults(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
+                    ['dragenter', 'dragover'].forEach(eventName => {
+                        dropArea.addEventListener(eventName, highlight, false);
+                    });
+
+                    ['dragleave', 'drop'].forEach(eventName => {
+                        dropArea.addEventListener(eventName, unhighlight, false);
+                    });
+
+                    function highlight() {
+                        dropArea.classList.add('highlight');
+                    }
+
+                    function unhighlight() {
+                        dropArea.classList.remove('highlight');
+                    }
+
+                    dropArea.addEventListener('drop', handleDrop, false);
+
+                    function handleDrop(e) {
+                        const dt = e.dataTransfer;
+                        const files = dt.files;
+
+                        handleFiles(files);
+                    }
+
+                    function handleFiles(files) {
+                        if (files.length > 0) {
+                            const file = files[0];
+                            if (file.type.startsWith('image/')) {
+                                imageInput.files = files;
+                                document.getElementById('submitButton').click();
+                            } else {
+                                alert('Lütfen sadece resim dosyası yükleyin.');
+                            }
+                        }
+                    }
+
+                    // Mevcut script
                     document.getElementById('imageInput').addEventListener('change', function () {
-                        document.getElementById('submitButton').click();
+                        handleFiles(this.files);
                     });
                 </script>
+            </div>
+            <script>
+                document.getElementById('imageInput').addEventListener('change', function () {
+                    document.getElementById('submitButton').click();
+                });
+            </script>
             </div>
         </div>
         <div class="recolor-container" id="recolor1">
@@ -361,7 +427,6 @@
 
 
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         const container = document.querySelector('.image-comparison');
         const overlay = document.querySelector('.image-overlay');

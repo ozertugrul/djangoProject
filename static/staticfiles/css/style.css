@@ -24,7 +24,19 @@
             z-index: 1001;
             overflow: hidden;
         }
-
+        #drop-area {
+            border: 2px dashed #ccc;
+            border-radius: 20px;
+            width: 480px;
+            padding: 20px;
+            text-align: center;
+            transition: border 0.3s ease-in-out;
+        }
+        
+        #drop-area.highlight {
+            border-color: #018554;
+            background-color: rgba(1, 133, 84, 0.1);
+        }
         .signup-modal-content {
             display: flex;
             height: 100%;
