@@ -2,14 +2,14 @@ from django.shortcuts import render, redirect
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.urls import reverse
-import uuid
-import os
+
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import UserCreationForm, ImageUploadForm
 from .models import Users, UploadedImage
 from .tasks import process_image, queue_lock, processing_queue, PROCESSING_TIME
 import threading
+
 
 def index(request):
     if request.method == 'POST':
@@ -52,20 +52,26 @@ def check_email(request):
 
 def signup(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = Users(
-                email=form.cleaned_data['email'],
-                password=make_password(form.cleaned_data['password']),
-                confirm_password=make_password(form.cleaned_data['confirm_password']),
-                name=form.cleaned_data['name'],
-                surname=form.cleaned_data['surname']
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        name = request.POST.get('name')
+        surname = request.POST.get('surname')
+
+        if email and password and name and surname:
+            if Users.objects.filter(email=email).exists():
+                return JsonResponse({'success': False, 'message': 'Email already exists'})
+            
+            user = Users.objects.create(
+                email=email,
+                password=make_password(password),
+                name=name,
+                surname=surname
             )
-            user.save()
-            return JsonResponse({'success': True, 'message': 'Account created successfully'})
+            return JsonResponse({'success': True, 'message': 'Account created successfully', 'redirect_url': 'homepage'})
         else:
-            return JsonResponse({'success': False, 'errors': form.errors})
+            return JsonResponse({'success': False, 'message': 'All fields are required'})
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
 
 def user_login(request):
     if request.method == 'POST':
@@ -73,11 +79,18 @@ def user_login(request):
         password = request.POST.get('password')
         try:
             user = Users.objects.get(email=email)
-            if check_password(password, user.password):
+            is_password_correct = check_password(password, user.password)
+            if is_password_correct:
                 request.session['user_id'] = user.id
-                return JsonResponse({'success': True, 'message': 'Logged in successfully'})
+                return JsonResponse({'success': True, 'message': 'Logged in successfully', 'redirect_url': 'homepage'})
             else:
-                return JsonResponse({'success': False, 'message': 'Invalid credentials'})
+                return JsonResponse({'success': False, 'message': 'Wrong Password'})
         except Users.DoesNotExist:
+            print(f"User not found for email: {email}")
             return JsonResponse({'success': False, 'message': 'User does not exist'})
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+def homepage(request):
+    user_id = request.session.get('user_id')
+    return render(request, 'homepage.html', {'user_id': user_id})
