@@ -8,9 +8,10 @@ urlpatterns = [
     path('mygallery/', views.mygallery, name='mygallery'),
     path('account/', views.account, name='account'),
     path('signup/', views.signup, name='signup'),
-    path('login/', views.user_login, name='login'),
+    path('user_login/', views.user_login, name='login'),
     path('editor/<int:image_id>/', views.editor, name='editor'),
     path('check_email/', views.check_email, name='check_email'),
+    path('homepage/', views.homepage, name='homepage'),
 ]
 
 if settings.DEBUG:
