@@ -1,17 +1,18 @@
-from django.shortcuts import render, redirect
-from django.core.files.storage import FileSystemStorage
-from django.conf import settings
-from django.urls import reverse
-
-from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
-from .forms import UserCreationForm, ImageUploadForm
+from .forms import ImageUploadForm
 from .models import Users, UploadedImage
 from .tasks import process_image, queue_lock, processing_queue, PROCESSING_TIME
 import threading
-
+from django.contrib.auth import logout as auth_logout
 
 def index(request):
+    user_id = request.session.get('user_id')
+    
+    # Kullanıcı session varsa homepage'e yönlendir
+    if user_id:
+        return redirect('homepage')  
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -94,6 +95,12 @@ def user_login(request):
 
 def homepage(request):
     user_id = request.session.get('user_id')
+    # Kullanıcı session yoksa index.html sayfasına yönlendirin
+    if not user_id:
+        return redirect('index') 
+    
+    user = get_object_or_404(Users, id=user_id)
+
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -108,4 +115,9 @@ def homepage(request):
             return redirect('editor', image_instance.id)
     else:
         form = ImageUploadForm()
-    return render(request, 'homepage.html', {'form': form, 'user_id': user_id})
+    return render(request, 'homepage.html', {'form': form, 'username': user.name})
+
+
+def logout(request):
+    auth_logout(request)
+    return redirect('index')

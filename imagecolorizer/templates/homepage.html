@@ -37,13 +37,13 @@
                 <div class="d-flex">
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
-                            {{user_id}}
+                            {{username}} 
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                           <a class="dropdown-item" href="#">Acconut</a>
                           <a class="dropdown-item" href="#">Gallery</a>
                           <a class="dropdown-item" href="#">Settings</a>
-                          <a class="dropdown-item" href="#">Logout</a>
+                          <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                         </div>
                       </div>
                 </div>
@@ -306,7 +306,6 @@
                 .then(data => {
                     console.log("Login response:", data);
                     if (data.success) {
-                        alert(data.message);
                         closeSignupModal();
                         location.reload();
                     } else {
@@ -396,7 +395,6 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert(data.message);
                         closeSignupModal();
                         location.reload();
                     } else {
