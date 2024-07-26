@@ -23,5 +23,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('imagecolorizer.urls')),  # imagecolorizer.urls'ü dahil et
+    path('accounts/', include('allauth.urls')),
+    path('', include('imagecolorizer.urls')), # imagecolorizer.urls'ü dahil et
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
