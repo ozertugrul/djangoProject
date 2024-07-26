@@ -13,7 +13,8 @@ urlpatterns = [
     path('editor/<int:image_id>/', views.editor, name='editor'),
     path('check_email/', views.check_email, name='check_email'),
     path('homepage/', views.homepage, name='homepage'),
-    path('logout/', views.logout, name='logout')
+    path('logout/', views.logout, name='logout'),
+    path('sologin/', views.sologin, name='sologin'),
 ]
 
 if settings.DEBUG:

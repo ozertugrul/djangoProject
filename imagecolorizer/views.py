@@ -95,7 +95,7 @@ def user_login(request):
             user = Users.objects.get(email=email)
             is_password_correct = check_password(password, user.password)
             if is_password_correct:
-                request.session['user_id'] = user.id
+                request.session['user_id'] = user.id 
                 return JsonResponse({'success': True, 'message': 'Logged in successfully', 'redirect_url': 'homepage'})
             else:
                 return JsonResponse({'success': False, 'message': 'Wrong Password'})
@@ -143,3 +143,14 @@ def settings(request):
     user = get_object_or_404(Users, id=user_id)
 
     return render(request, 'settings.html', {'username': user.name})
+
+
+def sologin(request):
+    print(request.user.email)
+    print(request.user.id)
+    request.session['user_id'] = request.user.id
+    return redirect('homepage') 
+
+
+from django.db import connection
+from django.http import JsonResponse

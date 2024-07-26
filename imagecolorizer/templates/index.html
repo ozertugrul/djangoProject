@@ -12,7 +12,7 @@
 </head>
 
 <body>
-    
+
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="">
@@ -33,6 +33,10 @@
                     <!-- Add other menu items similarly -->
                 </ul>
                 <div class="d-flex">
+                    {% if user.is_authenticated%}
+                    <p>you are {{user.email}}</p>
+                    <a href="logout">logout</a>
+                    {% endif %}
                     <button class="btn btn-login" onclick="openSignupModal()"> login / sign up </button>
                 </div>
             </div>
@@ -131,7 +135,7 @@
                     document.getElementById('submitButton').click();
                 });
             </script>
-            </div>
+        </div>
         </div>
         <div class="recolor-container" id="recolor1">
             <div class="recolor-text">
@@ -173,7 +177,13 @@
             <div class="signup-form" id="mainSignupForm">
                 <h2 class="signup-title">Get Started with Magicolor</h2>
                 <div class="signup-social-login">
-                    <button class="signup-button signup-google">Continue with Google</button>
+
+
+                    {% load socialaccount %}
+                    <form method="post" action="{% provider_login_url 'google' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="signup-button signup-google">Continue with Google</button>
+                    </form>
                     <button class="signup-button signup-facebook">Continue with Facebook</button>
                     <button class="signup-button signup-apple">Continue with Apple</button>
                 </div>
