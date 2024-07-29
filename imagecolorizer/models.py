@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Users(models.Model):
     id = models.AutoField(primary_key=True)
@@ -15,3 +18,25 @@ class UploadedImage(models.Model):
     width = models.IntegerField(null=True, blank=True)
     height = models.IntegerField(null=True, blank=True)
     processing_time = models.FloatField(null=True, blank=True)  # İşleme süresi saniye cinsinden
+
+
+class UserCredits(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    credits = models.IntegerField(default=10)  # Varsayılan olarak 10 kredi
+
+@receiver(post_save, sender=User)
+def create_user_credits(sender, instance, created, **kwargs):
+    if created:
+        UserCredits.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_credits(sender, instance, **kwargs):
+    instance.usercredits.save()
+
+class Gallery(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    image_url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'image_url')

@@ -29,7 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*', '127.0.0.1:8765']
  
  
-SITE_ID=3
+SITE_ID=4
 
 # Application definition
 

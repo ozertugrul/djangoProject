@@ -7,6 +7,29 @@
     <title>Magicolorize | Gallery</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../static/staticfiles/css/gallery.css">
+    <style>
+        .gallery-item {
+            position: relative;
+        }
+
+        .download-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover .download-btn {
+            opacity: 1;
+        }
+    </style>
 </head>
 
 <body>
@@ -31,16 +54,17 @@
                 </ul>
                 <div class="d-flex">
                     <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
-                            {{username}} 
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
+                            {{username}}
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                          <a class="dropdown-item" href="../account">Account</a>
-                          <a class="dropdown-item" href="../mygallery">Gallery</a>
-                          <a class="dropdown-item" href="../settings">Settings</a>
-                          <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                            <a class="dropdown-item" href="../account">Account</a>
+                            <a class="dropdown-item" href="../mygallery">Gallery</a>
+                            <a class="dropdown-item" href="../settings">Settings</a>
+                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                         </div>
-                      </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -52,52 +76,20 @@
             <p class="subtitle">Archive of the images you colored.</p>
 
             <div class="gallery-controls">
-                <div class="input-group" style="max-width: 300px;">
-                    <input type="text" class="form-control" placeholder="Search images...">
-                    <button class="btn btn-outline-secondary" type="button">Search</button>
-                </div>
-                <select class="form-select" style="max-width: 200px;">
-                    <option selected>Sort by...</option>
-                    <option value="1">Date (Newest)</option>
-                    <option value="2">Date (Oldest)</option>
-                    <option value="3">Name (A-Z)</option>
-                    <option value="4">Name (Z-A)</option>
-                </select>
+                <!-- Arama ve sıralama kontrolleri aynı kalacak -->
             </div>
 
             <div class="gallery-grid">
-                <!-- Example gallery items -->
+                {% for item in gallery_items %}
                 <div class="gallery-item">
-                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 1">
-                    <h3>Colorized Image 1</h3>
-                    <p>Created on: 2024-07-19</p>
+                    <img src="{{ item.image_url }}" alt="Colorized Image {{ forloop.counter }}">
+                    <button class="download-btn" data-url="{{ item.image_url }}">Download</button>
+                    <h3>Colorized Image {{ forloop.counter }}</h3>
+                    <p>Created on: {{ item.created_at|date:"Y-m-d" }}</p>
                 </div>
-                <div class="gallery-item">
-                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 2">
-                    <h3>Colorized Image 2</h3>
-                    <p>Created on: 2024-07-18</p>
-                </div>
-                <div class="gallery-item">
-                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 3">
-                    <h3>Colorized Image 3</h3>
-                    <p>Created on: 2024-07-17</p>
-                </div>
-                <div class="gallery-item">
-                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 1">
-                    <h3>Colorized Image 4</h3>
-                    <p>Created on: 2024-07-19</p>
-                </div>
-                <div class="gallery-item">
-                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 2">
-                    <h3>Colorized Image 5</h3>
-                    <p>Created on: 2024-07-18</p>
-                </div>
-                <div class="gallery-item">
-                    <img src="../static/staticfiles/images/yeni.png" alt="Colorized Image 3">
-                    <h3>Colorized Image 6</h3>
-                    <p>Created on: 2024-07-17</p>
-                </div>
-                <!-- Add more gallery items as needed -->
+                {% empty %}
+                <p>No images in your gallery yet.</p>
+                {% endfor %}
             </div>
         </div>
     </main>
@@ -108,6 +100,20 @@
         </div>
     </footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('.download-btn').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                const url = this.getAttribute('data-url');
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'gallery_image.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
 </body>
 
 </html>

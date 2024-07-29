@@ -45,14 +45,18 @@ def colorize_image(image_path):
 
     # Tensörü PIL görüntüsüne dönüştürme
     sample_output = colorized_image.squeeze(0).cpu()
-    save_image(sample_output,image_path.replace('.png', '_colorized.png'), normalize=True)
-
-
-   # Renklendirilmiş görüntüyü kaydetme
-    colorized_filename = os.path.basename(image_path).replace('.png', '_colorized.png')
-    colorized_path = os.path.join('media', 'uploads', colorized_filename)
     
-    # Tam yolu oluştur (kaydetme işlemi için)
+    # Orijinal dosya adı ve uzantısını al
+    file_name, file_extension = os.path.splitext(os.path.basename(image_path))
+    
+    # Yeni dosya adını oluştur, ancak uzantıyı .png olarak değiştir
+    colorized_filename = f"{file_name}_colorized.png"
+    
+    # Kaydetme yollarını oluştur
+    colorized_path = os.path.join('media', 'uploads', colorized_filename)
     full_colorized_path = os.path.join(os.path.dirname(image_path), colorized_filename)
+    
+    # Renklendirilmiş görüntüyü PNG formatında kaydet
+    save_image(sample_output, full_colorized_path, normalize=True)
     
     return colorized_path

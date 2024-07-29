@@ -30,7 +30,8 @@
                     <!-- Add other menu items similarly -->
                 </ul>
                 <div class="d-flex">
-                    <button id="downloadButton">İndir</button>
+                    <p>Kalan kredileriniz: <span id="credit-display">{{user_credits}}</span></p>
+                    <button id="downloadButton">Dowdload</button>
                 </div>
             </div>
         </div>
@@ -44,8 +45,12 @@
                 <h3>MagiColorize </h3><br>
                 <h4>Tools</h4>
                 <ul>
-                    <a href=""><li>Background Remover</li></a>
-                    <a href=""><li>Colorizer</li></a>
+                    <a href="">
+                        <li>Background Remover</li>
+                    </a>
+                    <a href="">
+                        <li>Colorizer</li>
+                    </a>
                 </ul>
             </div>
             <div id="canvas-container" style="margin-left: 0px !important;">
@@ -288,14 +293,7 @@
             e.preventDefault();
         });
 
-        downloadButton.addEventListener('click', function () {
-            if (img.src) {
-                const link = document.createElement('a');
-                link.download = 'image.png';
-                link.href = img.src;
-                link.click();
-            }
-        });
+
 
         function zoomFromCenter(zoomFactor) {
             const newScale = scale * zoomFactor;
@@ -358,6 +356,66 @@
             reader.readAsDataURL(file);
         });
 
+
+
+        downloadButton.addEventListener('click', function () {
+            const imageUrl = img.src;  // img, indirilen resmin olduğu img elementi
+
+            fetch('/decrease_credit/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `image_url=${encodeURIComponent(imageUrl)}`,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // İndirme işlemini gerçekleştir
+                        const link = document.createElement('a');
+                        link.download = 'image.png';
+                        link.href = imageUrl;
+                        link.click();
+
+                        // Kredi göstergesini güncelle
+                        document.getElementById('credit-display').textContent = data.credits;
+
+                        if (data.new_download) {
+                            alert('Yeni indirme: 1 kredi düşüldü.');
+                        } else {
+                            alert('Bu resmi daha önce indirdiniz. Kredi düşülmedi.');
+                        }
+                    } else {
+                        if (data.error === 'Insufficient credits') {
+                            alert('Yetersiz kredi. Lütfen kredinizi yükleyin.');
+                        } else {
+                            alert(data.error || 'İndirme işlemi gerçekleştirilemedi.');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Bir hata oluştu:', error);
+                    alert('İndirme işlemi sırasında bir hata oluştu.');
+                });
+        });
+
+
+        // CSRF token'ı almak için yardımcı fonksiyon
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     </script>
 
 </body>
