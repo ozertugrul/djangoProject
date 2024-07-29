@@ -47,8 +47,8 @@ def mygallery(request):
     if not user_id:
         return redirect('index') 
     
-    user = get_object_or_404(Users, id=user_id)
-    return render(request, 'gallery.html', {'username': user.name})
+    user = get_object_or_404(User, id=user_id)
+    return render(request, 'gallery.html', {'username': user.username})
 
 def account(request):
     user_id = request.session.get('user_id')
@@ -56,13 +56,13 @@ def account(request):
     if not user_id:
         return redirect('index') 
     
-    user = get_object_or_404(Users, id=user_id)
-    return render(request, 'account.html', {'username': user.name})
+    user = get_object_or_404(User, id=user_id)
+    return render(request, 'account.html', {'username': user.username})
 
 def check_email(request):
     if request.method == 'POST':
         email = request.POST.get('email')
-        user_exists = Users.objects.filter(email=email).exists()
+        user_exists = User.objects.filter(email=email).exists()
         return JsonResponse({'exists': user_exists})
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
@@ -104,14 +104,14 @@ def user_login(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         try:
-            user = Users.objects.get(email=email)
+            user = User.objects.get(email=email)
             is_password_correct = check_password(password, user.password)
             if is_password_correct:
                 request.session['user_id'] = user.id 
                 return JsonResponse({'success': True, 'message': 'Logged in successfully', 'redirect_url': 'homepage'})
             else:
                 return JsonResponse({'success': False, 'message': 'Wrong Password'})
-        except Users.DoesNotExist:
+        except User.DoesNotExist:
             print(f"User not found for email: {email}")
             return JsonResponse({'success': False, 'message': 'User does not exist'})
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
@@ -148,9 +148,9 @@ def settings(request):
     if not user_id:
         return redirect('index') 
     
-    user = get_object_or_404(Users, id=user_id)
+    user = get_object_or_404(User, id=user_id)
 
-    return render(request, 'settings.html', {'username': user.name})
+    return render(request, 'settings.html', {'username': user.username})
 
 
 def sologin(request):
