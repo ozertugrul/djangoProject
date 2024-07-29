@@ -3,11 +3,14 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import ImageUploadForm
 from .models import Users, UploadedImage
+from django.views.decorators.http import require_POST
 from .tasks import process_image, queue_lock, processing_queue, PROCESSING_TIME
 import threading
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from .models import UserCredits, Gallery
+from django.db import IntegrityError
 
 def index(request):
     user_id = request.session.get('user_id')
@@ -48,7 +51,10 @@ def mygallery(request):
         return redirect('index') 
     
     user = get_object_or_404(User, id=user_id)
-    return render(request, 'gallery.html', {'username': user.username})
+    gallery_items = Gallery.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'gallery.html', {'gallery_items': gallery_items, 'username': request.user.username})
+
+    
 
 def account(request):
     user_id = request.session.get('user_id')
@@ -105,6 +111,7 @@ def user_login(request):
         password = request.POST.get('password')
         try:
             user = User.objects.get(email=email)
+            print(user.email)
             is_password_correct = check_password(password, user.password)
             if is_password_correct:
                 request.session['user_id'] = user.id 
@@ -158,3 +165,46 @@ def sologin(request):
     print(request.user.id)
     request.session['user_id'] = request.user.id
     return redirect('homepage') 
+
+
+def home_view(request):
+    user_credits = 0
+    if request.user.is_authenticated:
+        user_credits = UserCredits.objects.get(user=request.user).credits
+        print(user_credits)
+    return render(request, 'home.html', {'user_credits': user_credits})
+
+
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import UserCredits, Gallery
+from django.db import transaction
+
+@require_POST
+def decrease_credit(request):
+    if request.user.is_authenticated:
+        image_url = request.POST.get('image_url')
+        if not image_url:
+            return JsonResponse({'success': False, 'error': 'Image URL is required'})
+
+        user_credits = UserCredits.objects.get(user=request.user)
+        
+        # Önce galeriye eklenmiş mi diye kontrol et
+        existing_image = Gallery.objects.filter(user=request.user, image_url=image_url).exists()
+
+        if existing_image:
+            # Resim daha önce indirilmişse
+            return JsonResponse({'success': True, 'credits': user_credits.credits, 'new_download': False})
+        
+        # Yeni indirme ve kredi kontrolü
+        if user_credits.credits > 0:
+            with transaction.atomic():
+                user_credits.credits -= 1
+                user_credits.save()
+                Gallery.objects.create(user=request.user, image_url=image_url)
+            return JsonResponse({'success': True, 'credits': user_credits.credits, 'new_download': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'Insufficient credits'})
+
+    return JsonResponse({'success': False, 'error': 'User not authenticated'})
