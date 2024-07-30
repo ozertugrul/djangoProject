@@ -22,7 +22,11 @@ class UploadedImage(models.Model):
 
 class UserCredits(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    credits = models.IntegerField(default=10)  # Varsayılan olarak 10 kredi
+    total_credits = models.IntegerField(default=10)
+    remaining_credits = models.IntegerField(default=10)
+
+    def __str__(self):
+        return f"{self.user.email} - Kalan Kredi: {self.remaining_credits}"
 
 @receiver(post_save, sender=User)
 def create_user_credits(sender, instance, created, **kwargs):

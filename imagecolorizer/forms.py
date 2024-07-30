@@ -21,3 +21,7 @@ class UserCreationForm(forms.Form):
         if password != confirm_password:
             raise forms.ValidationError("Passwords do not match")
         return cleaned_data
+    
+class AddCreditsForm(forms.Form):
+    email = forms.EmailField(label="Kullanıcı Email")
+    credits_to_add = forms.IntegerField(label="Eklenecek Kredi Miktarı", min_value=1)

@@ -3,14 +3,14 @@ from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import ImageUploadForm
 from .models import Users, UploadedImage
-from django.views.decorators.http import require_POST
 from .tasks import process_image, queue_lock, processing_queue, PROCESSING_TIME
 import threading
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from .models import UserCredits, Gallery
-from django.db import IntegrityError
+from django.views.decorators.http import require_POST
+from django.db import transaction
 
 def index(request):
     user_id = request.session.get('user_id')
@@ -34,10 +34,25 @@ def index(request):
         form = ImageUploadForm()
     return render(request, 'index.html', {'form': form})
 
+
+def iyzico_payment(request):
+    # Implement your iyzico payment logic here
+    # This might involve creating a payment request, redirecting to iyzico's payment page, etc.
+    # For example:
+    # iyzico_payment_url = create_iyzico_payment_request()
+    # return redirect(iyzico_payment_url)
+    pass
+
+
 def editor(request, image_id):
+    user_id = request.session.get('user_id')
+    user_credits = UserCredits.objects.get(user_id=user_id)
+    # Kullanıcı session yoksa index.html sayfasına yönlendirin
+    if not user_id:
+        return redirect('index') 
     image_instance = UploadedImage.objects.get(id=image_id)
     if image_instance.processed:
-        return render(request, 'editor.html', {'image': image_instance})
+        return render(request, 'editor.html', {'image': image_instance, "credits" : user_credits.remaining_credits })
     else:
         with queue_lock:
             position = image_instance.queue_position
@@ -86,7 +101,7 @@ def signup(request):
             
             # Yeni kullanıcıyı oluşturun
             user = User.objects.create_user(
-                username=name,  # Email'i username olarak kullanıyoruz
+                username=email,  # Email'i username olarak kullanıyoruz
                 email=email,
                 password=password,
                 first_name=name,
@@ -95,7 +110,7 @@ def signup(request):
             
             # Eğer ek profil bilgileri eklemeniz gerekiyorsa, custom user model veya profile modeli kullanmanız gerekebilir.
             # user.profile.save()
-            user = authenticate(username=name, password=password)
+            user = authenticate(username=email, password=password)
             if user is not None:
                 login(request, user)
                 request.session['user_id'] = user.id
@@ -167,19 +182,9 @@ def sologin(request):
     return redirect('homepage') 
 
 
-def home_view(request):
-    user_credits = 0
-    if request.user.is_authenticated:
-        user_credits = UserCredits.objects.get(user=request.user).credits
-        print(user_credits)
-    return render(request, 'home.html', {'user_credits': user_credits})
 
 
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from .models import UserCredits, Gallery
-from django.db import transaction
+
 
 @require_POST
 def decrease_credit(request):
@@ -195,15 +200,25 @@ def decrease_credit(request):
 
         if existing_image:
             # Resim daha önce indirilmişse
-            return JsonResponse({'success': True, 'credits': user_credits.credits, 'new_download': False})
+            return JsonResponse({
+                'success': True, 
+                'remaining_credits': user_credits.remaining_credits,
+                'total_credits': user_credits.total_credits,
+                'new_download': False
+            })
         
         # Yeni indirme ve kredi kontrolü
-        if user_credits.credits > 0:
+        if user_credits.remaining_credits > 0:
             with transaction.atomic():
-                user_credits.credits -= 1
+                user_credits.remaining_credits -= 1
                 user_credits.save()
                 Gallery.objects.create(user=request.user, image_url=image_url)
-            return JsonResponse({'success': True, 'credits': user_credits.credits, 'new_download': True})
+            return JsonResponse({
+                'success': True, 
+                'remaining_credits': user_credits.remaining_credits,
+                'total_credits': user_credits.total_credits,
+                'new_download': True
+            })
         else:
             return JsonResponse({'success': False, 'error': 'Insufficient credits'})
 
