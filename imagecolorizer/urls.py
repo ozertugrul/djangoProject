@@ -16,6 +16,7 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
     path('sologin/', views.sologin, name='sologin'),
     path('decrease_credit/', views.decrease_credit, name='decrease_credit'),
+    path('iyzico-payment/', views.iyzico_payment, name='iyzico_payment'),
 ]
 
 if settings.DEBUG:

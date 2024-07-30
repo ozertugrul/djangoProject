@@ -30,8 +30,8 @@
                     <!-- Add other menu items similarly -->
                 </ul>
                 <div class="d-flex">
-                    <p>Kalan kredileriniz: <span id="credit-display">{{user_credits}}</span></p>
-                    <button id="downloadButton">Dowdload</button>
+                    <p>Kalan kredileriniz: <span id="credit-display">{{credits}}</span></p>
+                    <button id="downloadButton">Download</button>
                 </div>
             </div>
         </div>
@@ -379,7 +379,7 @@
                         link.click();
 
                         // Kredi göstergesini güncelle
-                        document.getElementById('credit-display').textContent = data.credits;
+                        document.getElementById('credit-display').textContent = data.remaining_credits;
 
                         if (data.new_download) {
                             alert('Yeni indirme: 1 kredi düşüldü.');
