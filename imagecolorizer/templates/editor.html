@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../static/staticfiles/css/canvas.css">
     <title>Magicolorize | Editor</title>
+    <link rel="icon" type="image/x-icon" href="../static/staticfiles/favicon.ico">
 </head>
 
 <body>
@@ -30,8 +31,18 @@
                     <!-- Add other menu items similarly -->
                 </ul>
                 <div class="d-flex">
-                    <p>Kalan kredileriniz: <span id="credit-display">{{credits}}</span></p>
-                    <button id="downloadButton">Download</button>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                            data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
+                            {{user.first_name}} {{user.last_name}} 
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <a class="dropdown-item" href="../../account">Account</a>
+                            <a class="dropdown-item" href="../../mygallery">Gallery</a>
+                            <a class="dropdown-item" href="../../settings">Settings</a>
+                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -55,6 +66,7 @@
             </div>
             <div id="canvas-container" style="margin-left: 0px !important;">
                 <canvas id="myCanvas"></canvas>
+                <button class="downloadButton" id="downloadButton">Download</button>
                 <img id="uploadedImage" src="../../{{ image.result }}" alt="Uploaded Image" style="display:none;">
                 <label for="fileInput" id="fileInputLabel">Resim Seç</label>
                 <input type="file" id="fileInput" accept="image/*">
@@ -356,6 +368,18 @@
             reader.readAsDataURL(file);
         });
 
+        document.addEventListener('DOMContentLoaded', function() {
+            var credits = '{{ credits }}'; // Django template variable
+            var button = document.getElementById('downloadButton');
+
+            button.addEventListener('mouseover', function() {
+                button.textContent = 'Credits: ' + credits;
+            });
+
+            button.addEventListener('mouseout', function() {
+                button.textContent = 'Download';
+            });
+        });
 
 
         downloadButton.addEventListener('click', function () {
@@ -382,9 +406,9 @@
                         document.getElementById('credit-display').textContent = data.remaining_credits;
 
                         if (data.new_download) {
-                            alert('Yeni indirme: 1 kredi düşüldü.');
+                            console.log('Yeni indirme: 1 kredi düşüldü.');
                         } else {
-                            alert('Bu resmi daha önce indirdiniz. Kredi düşülmedi.');
+                            console.log('Bu resmi daha önce indirdiniz. Kredi düşülmedi.');
                         }
                     } else {
                         if (data.error === 'Insufficient credits') {
