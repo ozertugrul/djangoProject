@@ -18,8 +18,25 @@ class UploadedImage(models.Model):
     width = models.IntegerField(null=True, blank=True)
     height = models.IntegerField(null=True, blank=True)
     processing_time = models.FloatField(null=True, blank=True)  # İşleme süresi saniye cinsinden
+    image_hash = models.CharField(max_length=64, blank=True, null=True)
 
 
+class ProcessedImage(models.Model):
+    image = models.ImageField(upload_to='processed_images/')
+    result = models.TextField(blank=True, null=True)
+    image_hash = models.CharField(max_length=64, unique=True)  # Hash'ler benzersiz olmalı
+
+@receiver(post_save, sender=UploadedImage)
+def create_or_update_processed_image(sender, instance, created, **kwargs):
+    # Her UploadedImage kaydedildiğinde çalışacak
+    processed_image, _ = ProcessedImage.objects.get_or_create(
+        image_hash=instance.image_hash
+    )
+    processed_image.image = instance.image
+    if instance.result:
+        processed_image.result = instance.result
+    processed_image.save()
+ 
 class UserCredits(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     total_credits = models.IntegerField(default=10)

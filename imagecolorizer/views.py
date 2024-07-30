@@ -11,6 +11,11 @@ from django.contrib.auth.models import User
 from .models import UserCredits, Gallery
 from django.views.decorators.http import require_POST
 from django.db import transaction
+import hashlib
+from django.shortcuts import render, redirect
+from .forms import ImageUploadForm
+from django.contrib.auth.models import User
+import threading
 
 def index(request):
     user_id = request.session.get('user_id')
@@ -139,29 +144,55 @@ def user_login(request):
             return JsonResponse({'success': False, 'message': 'User does not exist'})
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
 
+import hashlib
+from django.shortcuts import render, redirect
+from .forms import ImageUploadForm
+from django.contrib.auth.models import User
+import threading
+
+# Hash hesaplama fonksiyonu
+def compute_hash(image_file):
+    hash_sha256 = hashlib.sha256()
+    for chunk in image_file.chunks():
+        hash_sha256.update(chunk)
+    return hash_sha256.hexdigest()
 
 def homepage(request):
     user_id = request.session.get('user_id')
-    # Kullanıcı session yoksa index.html sayfasına yönlendirin
     if not user_id:
-        return redirect('index') 
+        return redirect('index')
+    
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            image_instance = form.save()
+            uploaded_image = request.FILES['image']
+            image_hash = compute_hash(uploaded_image)
+            
+            # Hash'e göre veritabanında aynı görüntüyü arayın
+            existing_image = UploadedImage.objects.filter(image_hash=image_hash).first()
+            
+            if existing_image:
+                # Görsel varsa, kuyruğa eklemeden doğrudan işleme başla
+                image_instance = existing_image
+            else:
+                # Yeni görsel işleme al
+                image_instance = form.save(commit=False)
+                image_instance.image_hash = image_hash
+                image_instance.save()  # Bu, sinyali tetikleyecek ve ProcessedImage'i oluşturacak/güncelleyecek
+                
+                with queue_lock:
+                    processing_queue.append(image_instance)
+                    image_instance.queue_position = len(processing_queue)
+                    image_instance.save()
 
-            with queue_lock:
-                processing_queue.append(image_instance)
-                image_instance.queue_position = len(processing_queue)
-                image_instance.save()
+                threading.Thread(target=process_image, args=(image_instance.id,)).start()
 
-            threading.Thread(target=process_image, args=(image_instance.id,)).start()
             return redirect('editor', image_instance.id)
     else:
         form = ImageUploadForm()
 
     user = User.objects.get(id=user_id)
-    print(f' username: {user}')
+    print(f'username: {user}')
     return render(request, 'homepage.html', {'form': form, 'name': user.first_name, 'surname': user.last_name})
 
 
