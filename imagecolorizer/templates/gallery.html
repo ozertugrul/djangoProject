@@ -7,6 +7,7 @@
     <title>Magicolorize | Gallery</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../static/staticfiles/css/gallery.css">
+    <link rel="icon" type="image/x-icon" href="../static/staticfiles/favicon.ico">
     <style>
         .gallery-item {
             position: relative;
@@ -56,7 +57,7 @@
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
                             data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
-                            {{username}}
+                            {{name}} {{surname}} 
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a class="dropdown-item" href="../account">Account</a>
@@ -81,8 +82,8 @@
 
             <div class="gallery-grid">
                 {% for item in gallery_items %}
-                <div class="gallery-item">
-                    <img src="{{ item.image_url }}" alt="Colorized Image {{ forloop.counter }}">
+                <div  class="gallery-item">
+                    <img style="height: 250px!important;" src="{{ item.image_url }}" alt="Colorized Image {{ forloop.counter }}" >
                     <button class="download-btn" data-url="{{ item.image_url }}">Download</button>
                     <h3>Colorized Image {{ forloop.counter }}</h3>
                     <p>Created on: {{ item.created_at|date:"Y-m-d" }}</p>

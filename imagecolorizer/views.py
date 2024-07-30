@@ -46,13 +46,14 @@ def iyzico_payment(request):
 
 def editor(request, image_id):
     user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
     user_credits = UserCredits.objects.get(user_id=user_id)
     # Kullanıcı session yoksa index.html sayfasına yönlendirin
     if not user_id:
         return redirect('index') 
     image_instance = UploadedImage.objects.get(id=image_id)
     if image_instance.processed:
-        return render(request, 'editor.html', {'image': image_instance, "credits" : user_credits.remaining_credits })
+        return render(request, 'editor.html', {'image': image_instance, "credits" : user_credits.remaining_credits, 'user': user })
     else:
         with queue_lock:
             position = image_instance.queue_position
@@ -65,9 +66,9 @@ def mygallery(request):
     if not user_id:
         return redirect('index') 
     
-    user = get_object_or_404(User, id=user_id)
-    gallery_items = Gallery.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'gallery.html', {'gallery_items': gallery_items, 'username': request.user.username})
+    user = User.objects.get(id=user_id)
+    gallery_items = Gallery.objects.filter(user=user).order_by('-created_at')
+    return render(request, 'gallery.html', {'gallery_items': gallery_items, 'name': user.first_name, 'surname': user.last_name})
 
     
 
@@ -77,8 +78,8 @@ def account(request):
     if not user_id:
         return redirect('index') 
     
-    user = get_object_or_404(User, id=user_id)
-    return render(request, 'account.html', {'username': user.username})
+    user = User.objects.get(id=user_id)
+    return render(request, 'account.html', {'user': user, 'name': user.first_name, 'surname': user.last_name})
 
 def check_email(request):
     if request.method == 'POST':
@@ -140,6 +141,10 @@ def user_login(request):
 
 
 def homepage(request):
+    user_id = request.session.get('user_id')
+    # Kullanıcı session yoksa index.html sayfasına yönlendirin
+    if not user_id:
+        return redirect('index') 
     if request.method == 'POST':
         form = ImageUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -155,9 +160,9 @@ def homepage(request):
     else:
         form = ImageUploadForm()
 
-    user = request.user
+    user = User.objects.get(id=user_id)
     print(f' username: {user}')
-    return render(request, 'homepage.html', {'form': form, 'username': user.username})
+    return render(request, 'homepage.html', {'form': form, 'name': user.first_name, 'surname': user.last_name})
 
 
 def logout(request):
@@ -170,9 +175,9 @@ def settings(request):
     if not user_id:
         return redirect('index') 
     
-    user = get_object_or_404(User, id=user_id)
+    user = User.objects.get(id=user_id)
 
-    return render(request, 'settings.html', {'username': user.username})
+    return render(request, 'settings.html', {'name': user.first_name, 'surname': user.last_name})
 
 
 def sologin(request):
@@ -183,20 +188,19 @@ def sologin(request):
 
 
 
-
-
-
 @require_POST
 def decrease_credit(request):
-    if request.user.is_authenticated:
+    user_id = request.session.get('user_id')
+    user = User.objects.get(id=user_id)
+    if user_id:
         image_url = request.POST.get('image_url')
         if not image_url:
             return JsonResponse({'success': False, 'error': 'Image URL is required'})
 
-        user_credits = UserCredits.objects.get(user=request.user)
+        user_credits = UserCredits.objects.get(user=user)
         
         # Önce galeriye eklenmiş mi diye kontrol et
-        existing_image = Gallery.objects.filter(user=request.user, image_url=image_url).exists()
+        existing_image = Gallery.objects.filter(user=user, image_url=image_url).exists()
 
         if existing_image:
             # Resim daha önce indirilmişse
@@ -212,7 +216,7 @@ def decrease_credit(request):
             with transaction.atomic():
                 user_credits.remaining_credits -= 1
                 user_credits.save()
-                Gallery.objects.create(user=request.user, image_url=image_url)
+                Gallery.objects.create(user=user, image_url=image_url)
             return JsonResponse({
                 'success': True, 
                 'remaining_credits': user_credits.remaining_credits,
