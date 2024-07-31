@@ -34,7 +34,7 @@
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
                             data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
-                            {{user.first_name}} {{user.last_name}} 
+                            {{user.first_name}} {{user.last_name}}
                         </button>
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <a class="dropdown-item" href="../../account">Account</a>
@@ -67,7 +67,7 @@
             <div id="canvas-container" style="margin-left: 0px !important;">
                 <canvas id="myCanvas"></canvas>
                 <button class="downloadButton" id="downloadButton">Download</button>
-                <img id="uploadedImage" src="../../{{ image.result }}" alt="Uploaded Image" style="display:none;">
+                <img id="uploadedImage" src="data:image/png;base64,{{ blob }}" style="display:none;">
                 <label for="fileInput" id="fileInputLabel">Resim Seç</label>
                 <input type="file" id="fileInput" accept="image/*">
                 <div id="info"></div>
@@ -191,7 +191,7 @@
 
             draw();
         }
-
+        
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -368,15 +368,15 @@
             reader.readAsDataURL(file);
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             var credits = '{{ credits }}'; // Django template variable
             var button = document.getElementById('downloadButton');
 
-            button.addEventListener('mouseover', function() {
+            button.addEventListener('mouseover', function () {
                 button.textContent = 'Credits: ' + credits;
             });
 
-            button.addEventListener('mouseout', function() {
+            button.addEventListener('mouseout', function () {
                 button.textContent = 'Download';
             });
         });
