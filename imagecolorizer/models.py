@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import base64
 
 class Users(models.Model):
     id = models.AutoField(primary_key=True)
@@ -20,7 +21,7 @@ class UploadedImage(models.Model):
     processing_time = models.FloatField(null=True, blank=True)  # İşleme süresi saniye cinsinden
     image_hash = models.CharField(max_length=64, blank=True, null=True)
 
-
+        
 class ProcessedImage(models.Model):
     image = models.ImageField(upload_to='processed_images/')
     result = models.TextField(blank=True, null=True)

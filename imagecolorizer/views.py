@@ -1,3 +1,4 @@
+import base64
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
@@ -58,7 +59,9 @@ def editor(request, image_id):
         return redirect('index') 
     image_instance = UploadedImage.objects.get(id=image_id)
     if image_instance.processed:
-        return render(request, 'editor.html', {'image': image_instance, "credits" : user_credits.remaining_credits, 'user': user })
+        with open(image_instance.result, 'rb') as img_file:
+            blob_data = base64.b64encode(img_file.read()).decode('utf-8')
+        return render(request, 'editor.html', {'image': image_instance, "credits" : user_credits.remaining_credits, 'user': user , 'blob': blob_data})
     else:
         with queue_lock:
             position = image_instance.queue_position
