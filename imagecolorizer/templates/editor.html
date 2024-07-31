@@ -403,8 +403,8 @@
                         link.click();
 
                         // Kredi göstergesini güncelle
-                        document.getElementById('credit-display').textContent = data.remaining_credits;
-
+                        document.getElementById('downloadButton').textContent = 'Credits: ' + data.remaining_credits;
+                        location.reload();
                         if (data.new_download) {
                             console.log('Yeni indirme: 1 kredi düşüldü.');
                         } else {

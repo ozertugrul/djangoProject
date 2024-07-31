@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import ImageUploadForm
-from .models import Users, UploadedImage
+from .models import Users, UploadedImage, ProcessedImage
 from .tasks import process_image, queue_lock, processing_queue, PROCESSING_TIME
 import threading
 from django.contrib.auth import logout as auth_logout
@@ -170,7 +170,6 @@ def homepage(request):
             
             # Hash'e göre veritabanında aynı görüntüyü arayın
             existing_image = UploadedImage.objects.filter(image_hash=image_hash).first()
-            
             if existing_image:
                 # Görsel varsa, kuyruğa eklemeden doğrudan işleme başla
                 image_instance = existing_image
