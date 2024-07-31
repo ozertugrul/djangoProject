@@ -191,7 +191,7 @@
 
             draw();
         }
-        
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -369,6 +369,12 @@
         });
 
         document.addEventListener('DOMContentLoaded', function () {
+
+            var img = document.getElementById('uploadedImage');
+            if (img) {
+                const originalSrc = img.src;
+                img.src = ''; // src değerini boş bir string ile değiştirir
+            }
             var credits = '{{ credits }}'; // Django template variable
             var button = document.getElementById('downloadButton');
 
@@ -383,8 +389,7 @@
 
 
         downloadButton.addEventListener('click', function () {
-            const imageUrl = img.src;  // img, indirilen resmin olduğu img elementi
-
+            const imageUrl = "../../{{image.result|escapejs}}";  // img, indirilen resmin olduğu img elementi
             fetch('/decrease_credit/', {
                 method: 'POST',
                 headers: {
