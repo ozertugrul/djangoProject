@@ -20,9 +20,11 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
+
         .overlay.show {
             opacity: 1;
         }
+
         .popup {
             display: none;
             position: fixed;
@@ -30,25 +32,67 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: white;
-            padding: 30px 20px 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             font-family: Arial, sans-serif;
-            min-width: 250px;
+            width: auto;
+            max-width: 90%;
             opacity: 0;
             transition: opacity 0.3s ease;
             z-index: 1000;
+            overflow: hidden;
         }
+
         .popup.show {
             opacity: 1;
         }
+
+        .popup-content {
+            display: flex;
+        }
+
+        .image-section {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .image-section img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .download-section {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .download-button {
+            width: auto;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
         .close {
             position: absolute;
-            top: 5px;
-            right: 10px;
+            top: 10px;
+            right: 15px;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 24px;
+            color: rgb(0, 0, 0);
+            z-index: 1001;
         }
+
         .message {
             margin-top: 10px;
             text-align: center;
@@ -137,8 +181,9 @@
     <div id="overlay" class="overlay"></div>
     <div id="myPopup" class="popup">
         <span class="close" onclick="closePopup()">&times;</span>
-        <p id="popupMessage" class="message">Kredi yetersiz lütfen kredi yükleyin!</p>
+        <p id="popupMessage" class="message"></p>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         const canvas = document.getElementById('myCanvas');
@@ -437,9 +482,9 @@
             });
         });
 
-
+        let imageUrl = ""; // Global olarak tanımlıyoruz
         downloadButton.addEventListener('click', function () {
-            const imageUrl = "../../{{image.result|escapejs}}";  // img, indirilen resmin olduğu img elementi
+            imageUrl = "../../{{image.result|escapejs}}";  // img, indirilen resmin olduğu img elementi
             fetch('/decrease_credit/', {
                 method: 'POST',
                 headers: {
@@ -451,15 +496,10 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // İndirme işlemini gerçekleştir
-                        const link = document.createElement('a');
-                        link.download = 'image.png';
-                        link.href = imageUrl;
-                        link.click();
+                        updatePopup('<span class="close" onclick="closePopup()">&times;</span><div class="popup-content"><div class="image-section"><img src="../../static/staticfiles/images/download.png" alt="Magicolor Image"></div><div class="download-section"><h2>İndirme Seçenekleri</h2><button class="btn btn-primary download-button" onclick="downloadHD()">HD Görsel İndir</button><button class="download-button" onclick="downloadNormal()">Normal İndir</button></div></div>');
+                        showPopup()
 
-                        // Kredi göstergesini güncelle
-                        document.getElementById('downloadButton').textContent = 'Credits: ' + data.remaining_credits;
-                        location.reload();
+
                         if (data.new_download) {
 
                         } else {
@@ -483,7 +523,17 @@
                 });
         });
 
-
+        function downloadHD() {
+            // İndirme işlemini gerçekleştir
+            const link = document.createElement('a');
+            link.download = 'image.png';
+            link.href = imageUrl;
+            link.click();
+           // Kredi göstergesini güncelle
+            document.getElementById('downloadButton').textContent = 'Credits: ' + data.remaining_credits;
+            location.reload();
+        }
+        
         // CSRF token'ı almak için yardımcı fonksiyon
         function getCookie(name) {
             let cookieValue = null;
@@ -500,7 +550,7 @@
             return cookieValue;
         }
     </script>
-     <script>
+    <script>
         function showPopup() {
             const popup = document.getElementById("myPopup");
             const overlay = document.getElementById("overlay");
@@ -523,8 +573,12 @@
             }, 300);
         }
 
+        function updatePopup(newContent) {
+            document.getElementById("myPopup").innerHTML = newContent;
+        }
+
         function updatePopupMessage(newMessage) {
-            document.getElementById("popupMessage").innerText = newMessage;
+            document.getElementById("myPopup").innerHTML = newMessage;
         }
     </script>
 
