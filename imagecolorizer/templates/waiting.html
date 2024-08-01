@@ -10,21 +10,51 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="../static/staticfiles/favicon.ico">
 </head>
+
 <body>
     <style>
+        .processing-text {
+            font-style: italic;
+            margin-bottom: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            10% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            90% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+        }
+
         .popup-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.782);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
         }
-    
+
         .popup-content {
             background-color: white;
             padding: 20px;
@@ -32,14 +62,14 @@
             text-align: center;
             max-width: 400px;
         }
-    
+
         .progress-bar {
             background-color: #e0e0e0;
             height: 10px;
             border-radius: 5px;
             margin: 10px 0;
         }
-    
+
         .progress {
             background-color: #4CAF50;
             width: 0;
@@ -47,7 +77,7 @@
             border-radius: 5px;
             transition: width 1s linear;
         }
-    
+
         #upgradeButton {
             background-color: #FFA500;
             color: white;
@@ -57,20 +87,20 @@
             cursor: pointer;
             margin-top: 10px;
         }
-    
+
         .fas {
             color: #4CAF50;
         }
     </style>
     <div id="waitingPopup" class="popup-overlay">
         <div class="popup-content">
-            <p><i class="fas fa-user-clock"></i> Neredeyse orada, sıradaki görev sayısı <span id="queueNumber">{{ position }}</span>, tahmini bekleme süresi <span id="waitTime">00:30:00</span>...</p>
+            <p><i class="fas fa-user-clock"></i> Neredeyse hazır!<b> Kuyruktaki sıranız: <span id="queueNumber">{{position }}</span> </b> <br>
+                Tahmini bekleme süresi <span id="waitTime">00:10:00</span>...</p>
+            <p id="processingText" class="processing-text"></p>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
             <p>Şu anda yoğun talep nedeniyle sıraya girdiniz. Yeniden yükleme veya yenileme yapmanıza gerek yoktur.</p>
-            <p>Hesaba yükseltme yaparak daha hızlı işlem yapabilir, sıra beklemeden!</p>
-            <button id="upgradeButton">Şimdi Yükselt</button>
         </div>
     </div>
 
@@ -95,7 +125,7 @@
                     <!-- Add other menu items similarly -->
                 </ul>
                 <div class="d-flex">
-                    <button id="downloadButton">İndir</button>
+                    <button id="downloadButton">Download</button>
                 </div>
             </div>
         </div>
@@ -109,14 +139,17 @@
                 <h3>MagiColorize </h3><br>
                 <h4>Tools</h4>
                 <ul>
-                    <a href=""><li>Background Remover</li></a>
-                    <a href=""><li>Colorizer</li></a>
+                    <a href="">
+                        <li>Background Remover</li>
+                    </a>
+                    <a href="">
+                        <li>Colorizer</li>
+                    </a>
                 </ul>
             </div>
             <div id="canvas-container" style="margin-left: 0px !important;">
                 <canvas id="myCanvas"></canvas>
-                <label for="fileInput" id="fileInputLabel">Resim Seç</label>
-                <input type="file" id="fileInput" accept="image/*">
+                <label for="fileInput" id="fileInputLabel">Upload Image</label>
                 <div id="info"></div>
                 <div id="zoomControl" style="display: none;">
                     <button id="zoomOutBtn">-</button>
@@ -141,16 +174,16 @@
         let totalSeconds = {{ estimated_wait_time }} + 10; // 10 saniye
         const totalTime = totalSeconds;
         let queueNumber = {{ position }};
-    
+
         function updateTimer() {
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
             document.getElementById('waitTime').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
+
             // İlerleme çubuğunu güncelle
             const progressPercentage = 100 - (totalSeconds / totalTime * 100);
             document.querySelector('.progress').style.width = `${progressPercentage}%`;
-    
+
             if (totalSeconds > 0) {
                 totalSeconds--;
                 setTimeout(updateTimer, 1000);
@@ -161,9 +194,35 @@
                 window.location.reload();
             }
         }
-    
+
         // Sayaç ve ilerleme çubuğunu başlat
         updateTimer();
+
+        function updateProcessingText() {
+            const processingTexts = [
+                "Renklendirme işlemi başladı",
+                "Görsel işleniyor",
+                "İyileştirmeler yapılıyor"
+            ];
+            const processingTextElement = document.getElementById('processingText');
+            let currentIndex = 0;
+
+            function showNextText() {
+                processingTextElement.style.animation = 'none';
+                processingTextElement.offsetHeight; // Trigger reflow
+                processingTextElement.style.animation = 'slideUp 3s ease-in-out';
+                processingTextElement.textContent = processingTexts[currentIndex];
+                currentIndex = (currentIndex + 1) % processingTexts.length;
+            }
+
+            showNextText(); // İlk metni göster
+            setInterval(showNextText, 3000); // Her 3 saniyede bir metni değiştir
+        }
+
+        // Sayaç ve ilerleme çubuğunu başlat
+        updateTimer();
+        updateProcessingText();
     </script>
 </body>
+
 </html>
