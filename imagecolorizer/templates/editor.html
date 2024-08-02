@@ -98,6 +98,33 @@
             text-align: center;
         }
     </style>
+    <style>
+
+        .custom-menuu {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            width: 200px;
+            display: none;
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            border-radius: 5px;
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .menu-item {
+            padding: 8px 20px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .menu-item:hover {
+            background-color: #575757;
+        }
+    </style>
 </head>
 
 <body>
@@ -157,7 +184,7 @@
             <div id="canvas-container" style="margin-left: 0px !important;">
                 <canvas id="myCanvas"></canvas>
                 <button class="downloadButton" id="downloadButton">Download</button>
-                <img id="uploadedImage" src="data:image/png;base64,{{ blob }}" style="display:none;">
+                <img id="uploadedImage" src="data:image/png;base64,{{ watermark_image }}" style="display:none;">
                 <label for="fileInput" id="fileInputLabel">Resim Seç</label>
                 <input type="file" id="fileInput" accept="image/*">
                 <div id="info"></div>
@@ -169,12 +196,12 @@
                 <canvas id="miniMap" style="display: none;"></canvas>
             </div>
             <div id="rightAd" class="ad">
-                Reklam
+                Adsense
                 <div class="ad-close">✕</div>
             </div>
         </div>
         <div id="bottomAd" class="ad">
-            Reklam
+            Adsense
             <div class="ad-close">✕</div>
         </div>
     </div>
@@ -183,7 +210,14 @@
         <span class="close" onclick="closePopup()">&times;</span>
         <p id="popupMessage" class="message"></p>
     </div>
-
+    <div class="custom-menuu" id="custom-menuu">
+        <div class="menu-item" data-action="back">Back</div>
+        <div class="menu-item" data-action="forward">Forward</div>
+        <div class="menu-item" data-action="reload">Reload</div>
+        <div class="menu-item" data-action="save" >Save</div>
+        <div class="menu-item" data-action="print">Print</div>
+        <div class="menu-item">Inspect</div>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         const canvas = document.getElementById('myCanvas');
@@ -431,7 +465,7 @@
             setTimeout(resizeCanvas, 300);
         });
 
-        // Reklam kapatma işlemini şu şekilde güncelleyin:
+        // Adsense kapatma işlemini şu şekilde güncelleyin:
         document.querySelectorAll('.ad-close').forEach(function (closeBtn) {
             closeBtn.addEventListener('click', function () {
                 this.parentElement.style.display = 'none';
@@ -483,6 +517,8 @@
         });
 
         let imageUrl = ""; // Global olarak tanımlıyoruz
+        let lowResImageUrl = "data:image/png;base64,{{ low_blob }}"; // Düşük çözünürlüklü görüntü için
+
         downloadButton.addEventListener('click', function () {
             imageUrl = "../../{{image.result|escapejs}}";  // img, indirilen resmin olduğu img elementi
             fetch('/decrease_credit/', {
@@ -496,7 +532,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        updatePopup('<span class="close" onclick="closePopup()">&times;</span><div class="popup-content"><div class="image-section"><img src="../../static/staticfiles/images/download.png" alt="Magicolor Image"></div><div class="download-section"><h2>İndirme Seçenekleri</h2><button class="btn btn-primary download-button" onclick="downloadHD()">HD Görsel İndir</button><button class="download-button" onclick="downloadNormal()">Normal İndir</button></div></div>');
+                        updatePopup('<span class="close" onclick="closePopup()">&times;</span><div class="popup-content"><div class="image-section"><img src="../../static/staticfiles/images/download.png" alt="Magicolor Image"></div><div class="download-section"><h2>Download Options</h2><button class="btn btn-primary download-button" onclick="downloadHD()">Normal Download</button><button class="download-button" onclick="downloadNormal()">Watermarked Download</button></div></div>');
                         showPopup()
 
 
@@ -529,11 +565,19 @@
             link.download = 'image.png';
             link.href = imageUrl;
             link.click();
-           // Kredi göstergesini güncelle
+            // Kredi göstergesini güncelle
             document.getElementById('downloadButton').textContent = 'Credits: ' + data.remaining_credits;
             location.reload();
         }
-        
+
+        function downloadNormal() {
+            const link = document.createElement('a');
+            link.download = 'image_normal.png';
+            link.href = lowResImageUrl;
+            link.click();
+            updateCredits();
+        }
+
         // CSRF token'ı almak için yardımcı fonksiyon
         function getCookie(name) {
             let cookieValue = null;
@@ -581,7 +625,77 @@
             document.getElementById("myPopup").innerHTML = newMessage;
         }
     </script>
+<script>
+    function goBack() {
+        window.history.back();
+    }
 
+    function goForward() {
+        window.history.forward();
+    }
+
+    function reloadPage() {
+        window.location.reload();
+    }
+
+
+    function printPage() {
+        window.print();
+    }
+
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        var menu = document.getElementById('custom-menuu');
+        var menuWidth = menu.offsetWidth;
+        var menuHeight = menu.offsetHeight;
+        var windowWidth = window.innerWidth;
+        var windowHeight = window.innerHeight;
+
+        var top = e.clientY;
+        var left = e.clientX;
+
+        if (left + menuWidth > windowWidth) {
+            left = windowWidth - menuWidth;
+        }
+
+        if (top + menuHeight > windowHeight) {
+            top = windowHeight - menuHeight;
+        }
+
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+        menu.style.display = 'block';
+    });
+
+    document.addEventListener('click', function() {
+        var menu = document.getElementById('custom-menuu');
+        menu.style.display = 'none';
+    });
+
+    document.querySelectorAll('.menu-item').forEach(function(item) {
+        item.addEventListener('click', function() {
+            var action = this.getAttribute('data-action');
+            switch(action) {
+                case 'back':
+                    goBack();
+                    break;
+                case 'forward':
+                    goForward();
+                    break;
+                case 'reload':
+                    reloadPage();
+                    break;
+                case 'save':
+                    downloadNormal()
+                    break;
+                case 'print':
+                    printPage();
+                    break;                   
+                default:
+                    break;
+            }
+        });
+    });
+</script>
 </body>
-
 </html>
