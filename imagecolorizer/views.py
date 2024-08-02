@@ -14,9 +14,8 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 import hashlib
 from django.shortcuts import render, redirect
-from .forms import ImageUploadForm
-from django.contrib.auth.models import User
-import threading
+from PIL import Image
+import io
 
 def index(request):
     user_id = request.session.get('user_id')
@@ -54,14 +53,33 @@ def editor(request, image_id):
     user_id = request.session.get('user_id')
     user = User.objects.get(id=user_id)
     user_credits = UserCredits.objects.get(user_id=user_id)
+    
     # Kullanıcı session yoksa index.html sayfasına yönlendirin
     if not user_id:
-        return redirect('index') 
+        return redirect('index')
+    
     image_instance = UploadedImage.objects.get(id=image_id)
     if image_instance.processed:
         with open(image_instance.result, 'rb') as img_file:
             blob_data = base64.b64encode(img_file.read()).decode('utf-8')
-        return render(request, 'editor.html', {'image': image_instance, "credits" : user_credits.remaining_credits, 'user': user , 'blob': blob_data})
+            
+            
+            input_image_path = image_instance.result  # Replace with your image file path
+            watermark_image_path = "static/staticfiles/images/watermarks.png"  # Path to your watermark image
+            watermark_output = add_image_watermark(input_image_path, watermark_image_path, 0)
+            watermark_min_output = add_image_watermark(input_image_path, watermark_image_path, 1)
+            
+            img = Image.open(input_image_path)
+            width, height = img.size
+            new_size = (int(width * 0.10), int(height * 0.10))
+            low_res_img = img.resize(new_size, Image.LANCZOS)
+            buffer = io.BytesIO()
+            low_res_img.save(buffer, format="PNG")
+            low_res_blob = base64.b64encode(buffer.getvalue()).decode('utf-8')
+            
+            
+
+            return render(request, 'editor.html', {'image': image_instance, "credits": user_credits.remaining_credits, 'user': user, 'blob': blob_data, 'low_blob': watermark_min_output, "watermark_image": watermark_output})
     else:
         with queue_lock:
             position = image_instance.queue_position
@@ -260,3 +278,47 @@ def decrease_credit(request):
             return JsonResponse({'success': False, 'error': 'Insufficient credits'})
 
     return JsonResponse({'success': False, 'error': 'User not authenticated'})
+
+
+
+
+def add_image_watermark(input_image, watermark_image_path, resize_option):
+    # Create an in-memory binary stream
+    buffered = io.BytesIO()
+
+    # Open the input image and watermark image
+    with Image.open(input_image) as base_image:
+        # Resize the base image if resize_option is 1
+        if resize_option == 1:
+            base_width, base_height = base_image.size
+            new_width = int(base_width * 0.20)
+            new_height = int(base_height * 0.20)
+            base_image = base_image.resize((new_width, new_height), Image.LANCZOS)
+        
+        with Image.open(watermark_image_path).convert("RGBA") as watermark_image:
+            # Resize the watermark to fit better
+            watermark_image.thumbnail((400, 400), Image.LANCZOS)
+            txt = Image.new("RGBA", base_image.size, (255, 255, 255, 0))
+
+            width, height = base_image.size
+            w_width, w_height = watermark_image.size
+
+            # Rotate the watermark by 45 degrees
+            angle = 0
+            for i in range(0, width, 400):  # Adjusted step size to match the text box size
+                for j in range(0, height, 400):
+                    watermark = watermark_image.copy()
+                    rotated_watermark = watermark.rotate(angle, expand=True)
+                    txt.paste(rotated_watermark, (i, j), mask=rotated_watermark)
+
+            watermarked = Image.alpha_composite(base_image.convert("RGBA"), txt)
+            watermarked = watermarked.convert("RGBA")
+
+            # Save the image to the in-memory stream in PNG format
+            watermarked.save(buffered, format="PNG")
+
+    # Encode the image as base64
+    img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    return img_str
+
+
