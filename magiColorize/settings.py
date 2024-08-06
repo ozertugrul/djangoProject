@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'imagecolorizer',
-    'torchvision',
     'django.contrib.sites',
     'allauth',
     'allauth.account',

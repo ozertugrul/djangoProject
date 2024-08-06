@@ -19,6 +19,7 @@
             background-color: rgba(0, 0, 0, 0.5);
             opacity: 0;
             transition: opacity 0.3s ease;
+            z-index: 1000;
         }
 
         .overlay.show {
@@ -32,16 +33,15 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: white;
-            padding: 0;
+            padding: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             font-family: Arial, sans-serif;
-            width: auto;
-            max-width: 90%;
+            width: 90%;
+            max-width: 400px;
             opacity: 0;
             transition: opacity 0.3s ease;
-            z-index: 1000;
-            overflow: hidden;
+            z-index: 1001;
         }
 
         .popup.show {
@@ -50,29 +50,27 @@
 
         .popup-content {
             display: flex;
+            flex-direction: column;
         }
 
         .image-section {
-            flex: 1;
-            overflow: hidden;
+            width: 100%;
+            margin-bottom: 20px;
         }
 
         .image-section img {
             width: 100%;
             height: auto;
             display: block;
+            border-radius: 5px;
         }
 
         .download-section {
-            flex: 1;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            width: 100%;
         }
 
         .download-button {
-            width: auto;
+            width: 100%;
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -89,8 +87,35 @@
             right: 15px;
             cursor: pointer;
             font-size: 24px;
-            color: rgb(0, 0, 0);
-            z-index: 1001;
+            color: #000;
+        }
+
+        .message {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        @media screen and (max-width: 768px) {
+            .popup {
+                width: 95%;
+                padding: 15px;
+            }
+
+            .image-section {
+                display: none;
+                /* Mobilde resim kısmını gizle */
+            }
+
+            .download-button {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+
+            .close {
+                font-size: 20px;
+                top: 5px;
+                right: 10px;
+            }
         }
 
         .message {
@@ -99,7 +124,6 @@
         }
     </style>
     <style>
-
         .custom-menuu {
             margin: 0;
             font-family: 'Roboto', sans-serif;
@@ -140,10 +164,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            Photo Editing Tools
-                        </a>
+
                     </li>
                     <!-- Add other menu items similarly -->
                 </ul>
@@ -214,7 +235,7 @@
         <div class="menu-item" data-action="back">Back</div>
         <div class="menu-item" data-action="forward">Forward</div>
         <div class="menu-item" data-action="reload">Reload</div>
-        <div class="menu-item" data-action="save" >Save</div>
+        <div class="menu-item" data-action="save">Save</div>
         <div class="menu-item" data-action="print">Print</div>
         <div class="menu-item">Inspect</div>
     </div>
@@ -278,14 +299,15 @@
 
         function resizeCanvas() {
             const container = document.getElementById('canvas-container');
-            const menuWidth = menu.classList.contains('open') ? (window.innerWidth <= 768 ? window.innerWidth : 300) : 0;
 
-            canvas.width = container.clientWidth - menuWidth;
+            // Canvas boyutunu container'a göre ayarla, menü durumunu dikkate almadan
+            canvas.width = container.clientWidth;
             canvas.height = container.clientHeight;
             canvas.style.width = `${canvas.width}px`;
             canvas.style.height = `${canvas.height}px`;
 
             if (img.src) {
+                // Görüntüyü yeniden ölçeklendirme ve konumlandırma
                 const scaleX = canvas.width / img.width;
                 const scaleY = canvas.height / img.height;
                 scale = Math.min(scaleX, scaleY);
@@ -297,8 +319,17 @@
             draw();
         }
 
-        window.addEventListener('resize', resizeCanvas);
+        // window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
+        window.addEventListener('resize', function () {
+            const container = document.getElementById('canvas-container');
+            if (menu.classList.contains('open')) {
+                container.style.width = window.innerWidth <= 768 ? '0' : 'calc(100% - 270px)';
+            } else {
+                container.style.width = '100%';
+            }
+            draw();
+        });
 
         function setScale(newScale, centerX, centerY) {
             const oldScale = scale;
@@ -366,19 +397,36 @@
                 miniCtx.clearRect(0, 0, miniMap.width, miniMap.height);
                 miniCtx.drawImage(img, 0, 0, miniMap.width, miniMap.height);
 
+                // Canvas'ın merkez noktasını hesapla
+                const canvasCenterX = canvas.width / 2;
+                const canvasCenterY = canvas.height / 2;
+
+                // Görüntünün sol üst köşesinin koordinatları
+                const imageLeftX = canvasCenterX + translateX - (img.width * scale) / 2;
+                const imageTopY = canvasCenterY + translateY - (img.height * scale) / 2;
+
+                // Görünür alanın koordinatlarını hesapla
                 const viewportRect = {
-                    x: -translateX / scale * (miniMap.width / img.width),
-                    y: -translateY / scale * (miniMap.height / img.height),
-                    width: canvas.width / scale * (miniMap.width / img.width),
-                    height: canvas.height / scale * (miniMap.height / img.height)
+                    x: (-imageLeftX / (img.width * scale)) * miniMap.width,
+                    y: (-imageTopY / (img.height * scale)) * miniMap.height,
+                    width: (canvas.width / (img.width * scale)) * miniMap.width,
+                    height: (canvas.height / (img.height * scale)) * miniMap.height
                 };
 
+                // Kırmızı dikdörtgeni çiz
                 miniCtx.strokeStyle = 'red';
-                miniCtx.strokeRect(viewportRect.x, viewportRect.y, viewportRect.width, viewportRect.height);
+                miniCtx.lineWidth = 2;
+                miniCtx.strokeRect(
+                    viewportRect.x,
+                    viewportRect.y,
+                    viewportRect.width,
+                    viewportRect.height
+                );
             } else {
                 miniMap.style.display = 'none';
             }
         }
+
 
         window.addEventListener('resize', function () {
             if (menu.classList.contains('open')) {
@@ -456,13 +504,15 @@
             menu.classList.toggle('open');
             menuToggle.innerHTML = menu.classList.contains('open') ? '⮜' : '☰';
 
+            // Canvas container'ın genişliğini ayarla, ama canvas'ı yeniden boyutlandırma
             if (menu.classList.contains('open')) {
-                contentContainer.style.marginLeft = window.innerWidth <= 768 ? '100%' : '270px';
+                canvasContainer.style.width = window.innerWidth <= 768 ? '0' : 'calc(100% - 270px)';
             } else {
-                contentContainer.style.marginLeft = '0';
+                canvasContainer.style.width = '100%';
             }
 
-            setTimeout(resizeCanvas, 300);
+            // Canvas'ı yeniden çiz, ama boyutunu değiştirme
+            draw();
         });
 
         // Adsense kapatma işlemini şu şekilde güncelleyin:
@@ -543,10 +593,10 @@
                         }
                     } else {
                         if (data.error === 'Insufficient credits') {
-                            updatePopupMessage('Yetersiz kredi. Lütfen kredi yükleyin.');
+                            updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center"> Yetersiz kredi. Lütfen kredi yükleyin. </div>');
                             showPopup()
                         } else {
-                            updatePopupMessage("İndirme işlemi gerçekleştirilemedi daha sonra tekrar deneyiniz!");
+                            updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center"> İndirme işlemi gerçekleştirilemedi daha sonra tekrar deneyiniz!</div>');
                             showPopup()
                             console.log(data.error);
                         }
@@ -554,7 +604,7 @@
                 })
                 .catch(error => {
                     console.error('Bir hata oluştu:', error);
-                    updatePopupMessage('İndirme işlemi sırasında bir hata oluştu.');
+                    updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center"> İndirme işlemi sırasında bir hata oluştu.</div>');
                     showPopup()
                 });
         });
@@ -625,77 +675,165 @@
             document.getElementById("myPopup").innerHTML = newMessage;
         }
     </script>
-<script>
-    function goBack() {
-        window.history.back();
-    }
-
-    function goForward() {
-        window.history.forward();
-    }
-
-    function reloadPage() {
-        window.location.reload();
-    }
-
-
-    function printPage() {
-        window.print();
-    }
-
-    document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        var menu = document.getElementById('custom-menuu');
-        var menuWidth = menu.offsetWidth;
-        var menuHeight = menu.offsetHeight;
-        var windowWidth = window.innerWidth;
-        var windowHeight = window.innerHeight;
-
-        var top = e.clientY;
-        var left = e.clientX;
-
-        if (left + menuWidth > windowWidth) {
-            left = windowWidth - menuWidth;
+    <script>
+        function goBack() {
+            window.history.back();
         }
 
-        if (top + menuHeight > windowHeight) {
-            top = windowHeight - menuHeight;
+        function goForward() {
+            window.history.forward();
         }
 
-        menu.style.top = top + 'px';
-        menu.style.left = left + 'px';
-        menu.style.display = 'block';
-    });
+        function reloadPage() {
+            window.location.reload();
+        }
 
-    document.addEventListener('click', function() {
-        var menu = document.getElementById('custom-menuu');
-        menu.style.display = 'none';
-    });
 
-    document.querySelectorAll('.menu-item').forEach(function(item) {
-        item.addEventListener('click', function() {
-            var action = this.getAttribute('data-action');
-            switch(action) {
-                case 'back':
-                    goBack();
-                    break;
-                case 'forward':
-                    goForward();
-                    break;
-                case 'reload':
-                    reloadPage();
-                    break;
-                case 'save':
-                    downloadNormal()
-                    break;
-                case 'print':
-                    printPage();
-                    break;                   
-                default:
-                    break;
+        function printPage() {
+            window.print();
+        }
+
+        document.addEventListener('contextmenu', function (e) {
+            if (!isMobileDevice()) {
+                e.preventDefault();
+                var menu = document.getElementById('custom-menuu');
+                var menuWidth = menu.offsetWidth;
+                var menuHeight = menu.offsetHeight;
+                var windowWidth = window.innerWidth;
+                var windowHeight = window.innerHeight;
+
+                var left = e.clientX;
+                var top = e.clientY;
+
+                // Sağ tarafa taşma kontrolü
+                if (left + menuWidth > windowWidth) {
+                    left = windowWidth - menuWidth;
+                }
+
+                // Alt tarafa taşma kontrolü
+                if (top + menuHeight > windowHeight) {
+                    top = windowHeight - menuHeight;
+                }
+
+                menu.style.left = left + 'px';
+                menu.style.top = top + 'px';
+                menu.style.display = 'block';
             }
         });
-    });
-</script>
+
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+        }
+
+        document.addEventListener('click', function () {
+            var menu = document.getElementById('custom-menuu');
+            menu.style.display = 'none';
+        });
+
+        document.querySelectorAll('.menu-item').forEach(function (item) {
+            item.addEventListener('click', function () {
+                var action = this.getAttribute('data-action');
+                switch (action) {
+                    case 'back':
+                        goBack();
+                        break;
+                    case 'forward':
+                        goForward();
+                        break;
+                    case 'reload':
+                        reloadPage();
+                        break;
+                    case 'save':
+                        downloadNormal()
+                        break;
+                    case 'print':
+                        printPage();
+                        break;
+                    default:
+                        break;
+                }
+            });
+        });
+    </script>
+    <script>
+        let lastTouchDistance = 0;
+        let isZooming = false;
+        let animationFrameId = null;
+
+        canvas.addEventListener('touchstart', handleTouchStart, false);
+        canvas.addEventListener('touchmove', handleTouchMove, false);
+        canvas.addEventListener('touchend', handleTouchEnd, false);
+
+        function handleTouchStart(e) {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX - translateX;
+                startY = e.touches[0].clientY - translateY;
+            } else if (e.touches.length === 2) {
+                isZooming = true;
+                lastTouchDistance = getTouchDistance(e.touches);
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animationFrameId = requestAnimationFrame(() => {
+                if (isDragging && e.touches.length === 1) {
+                    translateX = e.touches[0].clientX - startX;
+                    translateY = e.touches[0].clientY - startY;
+                    draw();
+                } else if (isZooming && e.touches.length === 2) {
+                    const touchDistance = getTouchDistance(e.touches);
+                    const zoomFactor = touchDistance / lastTouchDistance;
+
+                    const rect = canvas.getBoundingClientRect();
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left - canvas.width / 2;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top - canvas.height / 2;
+
+                    setScale(scale * zoomFactor, centerX, centerY);
+                    lastTouchDistance = touchDistance;
+                }
+            });
+        }
+        function handleTouchEnd(e) {
+            isDragging = false;
+            isZooming = false;
+        }
+
+        function getTouchDistance(touches) {
+            return Math.hypot(
+                touches[0].clientX - touches[1].clientX,
+                touches[0].clientY - touches[1].clientY
+            );
+        }
+
+        // CTRL+U engelleme
+document.onkeydown = function(e) {
+    if (e.ctrlKey && e.keyCode == 85) {
+        e.preventDefault();
+        return false;
+    }
+};
+
+// F12 engelleme
+document.addEventListener('keydown', function(e) {
+    if (e.key == 'F12') {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// CTRL+J engelleme
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.keyCode == 74) {
+        e.preventDefault();
+        return false;
+    }
+});
+    </script>
 </body>
+
 </html>
