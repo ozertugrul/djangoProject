@@ -26,8 +26,9 @@ SECRET_KEY = 'django-insecure-&gaj1y9$5rh6f%su_nhl1g5ax%0yhc443-_mu^3nybks!ynwsq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', '127.0.0.1:8765']
+ALLOWED_HOSTS = ['*']
  
+CSRF_TRUSTED_ORIGINS = ['https://ertu.magi']
  
 SITE_ID=8
 
@@ -98,9 +99,9 @@ WSGI_APPLICATION = 'magiColorize.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME" : "magicolorize",
-        "USER" : "root",
-        "PASSWORD" : "",
+        "NAME" : "newuwsgi",
+        "USER" : "newuwsgi",
+        "PASSWORD" : "tkDzLY6W8bz6h8kC",
         "HOST": "127.0.0.1"
     }
 }
