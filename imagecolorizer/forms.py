@@ -1,6 +1,7 @@
 # imagecolorizer/forms.py
 from django import forms
 from .models import UploadedImage
+from .models import Coupon
 
 class ImageUploadForm(forms.ModelForm):
     class Meta:
@@ -25,3 +26,16 @@ class UserCreationForm(forms.Form):
 class AddCreditsForm(forms.Form):
     email = forms.EmailField(label="Kullanıcı Email")
     credits_to_add = forms.IntegerField(label="Eklenecek Kredi Miktarı", min_value=1)
+
+
+
+class CouponForm(forms.ModelForm):
+    class Meta:
+        model = Coupon
+        fields = ['code', 'credits', 'limits']
+
+    def clean_limit(self):
+        limit = self.cleaned_data.get('limits')
+        if limit <= 0:
+            raise forms.ValidationError("Limit must be greater than 0.")
+        return limit

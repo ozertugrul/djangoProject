@@ -5,6 +5,18 @@ from .forms import AddCreditsForm
 from django.urls import path
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from .models import Coupon
+from .models import CouponUsage
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('code', 'credits', 'limits', 'used_count')
+    search_fields = ('code',)
+
+@admin.register(CouponUsage)
+class CouponUsageAdmin(admin.ModelAdmin):
+    list_display = ('user', 'coupon', 'used_on')
+    search_fields = ('user__username', 'coupon__code')
 
 class UserCreditsAdmin(admin.ModelAdmin):
     list_display = ('user_email', 'total_credits', 'remaining_credits')

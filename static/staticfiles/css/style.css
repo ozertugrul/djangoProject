@@ -490,3 +490,59 @@
 .recolor-text, .recolor-video {
     opacity: 0;
 }
+
+.showcase-container {
+    display: flex;
+    justify-content: space-between;
+    margin: 2rem auto;
+    max-width: 80%;
+    padding: 0 40px;
+}
+
+.showcase-item {
+    flex: 0 0 28%;
+    max-width: 28%;
+    margin: 0 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.showcase-item img {
+    width: 100%;
+    height: 300px; /* Yükseklik 200px'den 300px'e çıkarıldı */
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .showcase-container {
+        max-width: 100%;
+        padding: 0;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox için */
+        -ms-overflow-style: none;  /* Internet Explorer ve Edge için */
+    }
+
+    
+    .showcase-item {
+        flex: 0 0 70%;
+        max-width: 70%;
+        margin: 0 15px;
+        scroll-snap-align: center;
+    }
+
+    .showcase-item:first-child {
+        margin-left: 40px;
+    }
+
+    .showcase-item:last-child {
+        margin-right: 40px;
+    }
+
+    .showcase-item img {
+        height: 250px; /* Mobil görünümde yükseklik biraz daha düşük */
+    }
+}

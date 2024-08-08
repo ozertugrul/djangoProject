@@ -155,31 +155,19 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="../../">
-                <img src="../../static/staticfiles/images/logo.png" alt="Fotor" height="30">
+                <img src="../../static/staticfiles/images/logo.png" alt="Magicolorize" height="30">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-
-                    </li>
-                    <!-- Add other menu items similarly -->
-                </ul>
-                <div class="d-flex">
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                            data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
-                            {{user.first_name}} {{user.last_name}}
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="../../account">Account</a>
-                            <a class="dropdown-item" href="../../mygallery">Gallery</a>
-                            <a class="dropdown-item" href="../../settings">Settings</a>
-                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-                        </div>
+            <div class="d-flex ml-auto">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                        data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
+                        {{user.first_name}} {{user.last_name}}
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="../../account">Account</a>
+                        <a class="dropdown-item" href="../../mygallery">Gallery</a>
+                        <a class="dropdown-item" href="../../settings">Settings</a>
+                        <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                     </div>
                 </div>
             </div>
@@ -190,16 +178,11 @@
         <div class="content-container">
             <button id="menuToggle">☰</button>
             <div id="menu">
-
-                <h3>MagiColorize </h3><br>
+                <br>
                 <h4>Tools</h4>
                 <ul>
-                    <a href="">
-                        <li>Background Remover</li>
-                    </a>
-                    <a href="">
-                        <li>Colorizer</li>
-                    </a>
+                    <li class="listsss"><a href="#"><button class="btnum">Background Remover</button></a></li>
+                    <li><a href="#"><button class="btnum">Colorize</button></a></li>
                 </ul>
             </div>
             <div id="canvas-container" style="margin-left: 0px !important;">
@@ -569,8 +552,13 @@
         let imageUrl = ""; // Global olarak tanımlıyoruz
         let lowResImageUrl = "data:image/png;base64,{{ low_blob }}"; // Düşük çözünürlüklü görüntü için
 
-        downloadButton.addEventListener('click', function () {
-            imageUrl = "../../{{image.result|escapejs}}";  // img, indirilen resmin olduğu img elementi
+        document.getElementById('downloadButton').addEventListener('click', function () {
+            imageUrl = "/{{image.result|escapejs}}";  // İndirilen resmin olduğu img elementi
+            updatePopup('<span class="close" onclick="closePopup()">&times;</span><div class="popup-content"><div class="image-section"><img src="../../static/staticfiles/images/download.png" alt="Magicolor Image"></div><div class="download-section"><h2>Download Options</h2><button class="btn btn-primary download-button" onclick="downloadHD()">Normal Download</button><button class="download-button" onclick="downloadNormal()">Watermarked Download</button></div></div>');
+            showPopup();
+        });
+
+        function downloadHD() {
             fetch('/decrease_credit/', {
                 method: 'POST',
                 headers: {
@@ -582,51 +570,41 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        updatePopup('<span class="close" onclick="closePopup()">&times;</span><div class="popup-content"><div class="image-section"><img src="../../static/staticfiles/images/download.png" alt="Magicolor Image"></div><div class="download-section"><h2>Download Options</h2><button class="btn btn-primary download-button" onclick="downloadHD()">Normal Download</button><button class="download-button" onclick="downloadNormal()">Watermarked Download</button></div></div>');
-                        showPopup()
-
-
-                        if (data.new_download) {
-
-                        } else {
-
-                        }
+                        // İndirme işlemini gerçekleştir
+                        const link = document.createElement('a');
+                        link.download = 'image.png';
+                        link.href = imageUrl;
+                        link.click();
+                        // Kredi göstergesini güncelle
+                        document.getElementById('downloadButton').textContent = 'Credits: ' + data.remaining_credits;
+                        location.reload();
                     } else {
-                        if (data.error === 'Insufficient credits') {
-                            updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center"> Yetersiz kredi. Lütfen kredi yükleyin. </div>');
-                            showPopup()
-                        } else {
-                            updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center"> İndirme işlemi gerçekleştirilemedi daha sonra tekrar deneyiniz!</div>');
-                            showPopup()
-                            console.log(data.error);
-                        }
+                        handleError(data.error);
                     }
                 })
                 .catch(error => {
                     console.error('Bir hata oluştu:', error);
-                    updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center"> İndirme işlemi sırasında bir hata oluştu.</div>');
-                    showPopup()
+                    handleError('The download could not be completed, try again later!');
                 });
-        });
-
-        function downloadHD() {
-            // İndirme işlemini gerçekleştir
-            const link = document.createElement('a');
-            link.download = 'image.png';
-            link.href = imageUrl;
-            link.click();
-            // Kredi göstergesini güncelle
-            document.getElementById('downloadButton').textContent = 'Credits: ' + data.remaining_credits;
-            location.reload();
         }
 
         function downloadNormal() {
+            // Düşük çözünürlüklü resmi indir
             const link = document.createElement('a');
             link.download = 'image_normal.png';
             link.href = lowResImageUrl;
             link.click();
-            updateCredits();
         }
+
+        function handleError(errorMessage) {
+            if (errorMessage === 'Insufficient credits') {
+                updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center">  Please upload credit. <b>Your Credit: 0  </b> <br> <br> <a href="/account/" class="btn btn-warning text-center">Buy Credits</button></a> ');
+            } else {
+                updatePopupMessage('<span class="close" onclick="closePopup()">&times;</span> <div class="text-center"> ' + errorMessage + '</div>');
+            }
+            showPopup();
+        }
+
 
         // CSRF token'ı almak için yardımcı fonksiyon
         function getCookie(name) {
@@ -811,28 +789,28 @@
         }
 
         // CTRL+U engelleme
-document.onkeydown = function(e) {
-    if (e.ctrlKey && e.keyCode == 85) {
-        e.preventDefault();
-        return false;
-    }
-};
+        document.onkeydown = function (e) {
+            if (e.ctrlKey && e.keyCode == 85) {
+                e.preventDefault();
+                return false;
+            }
+        };
 
-// F12 engelleme
-document.addEventListener('keydown', function(e) {
-    if (e.key == 'F12') {
-        e.preventDefault();
-        return false;
-    }
-});
+        // F12 engelleme
+        document.addEventListener('keydown', function (e) {
+            if (e.key == 'F12') {
+                e.preventDefault();
+                return false;
+            }
+        });
 
-// CTRL+J engelleme
-document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.keyCode == 74) {
-        e.preventDefault();
-        return false;
-    }
-});
+        // CTRL+J engelleme
+        document.addEventListener('keydown', function (e) {
+            if (e.ctrlKey && e.keyCode == 74) {
+                e.preventDefault();
+                return false;
+            }
+        });
     </script>
 </body>
 

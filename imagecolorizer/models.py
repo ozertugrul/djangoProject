@@ -59,6 +59,33 @@ class Gallery(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     image_url = models.URLField()
     created_at = models.DateTimeField(auto_now_add=True)
+    image_score = models.FloatField(null=True, blank=True)
 
+    
     class Meta:
         unique_together = ('user', 'image_url')
+        
+
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=255, unique=True)  # Coupon code
+    credits = models.PositiveIntegerField() 
+    limits = models.PositiveIntegerField(default=50)  
+    used_count = models.PositiveIntegerField(default=0)  
+
+    def __str__(self):
+        return self.code
+
+    def is_valid(self):
+        return self.limits > self.used_count
+
+class CouponUsage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE)
+    used_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'coupon')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.coupon.code}"

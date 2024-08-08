@@ -19,27 +19,17 @@
             <a class="navbar-brand" href="">
                 <img src="static/staticfiles/images/logo.png" alt="Magicolor" height="30">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-                       
-                    </li>
-                    <!-- Add other menu items similarly -->
-                </ul>
-                <div class="d-flex">
-                    {% if user.is_authenticated%}
-                    <p>you are {{user.email}}</p>
-                    <a href="logout">logout</a>
-                    {% endif %}
-                    <button class="btn btn-login" onclick="openSignupModal()"> login / sign up </button>
-                </div>
+            <div class="d-flex ms-auto">
+                {% if user.is_authenticated %}
+                    <p class="mb-0">You are {{ user.email }}</p>
+                    <a href="logout" class="btn btn-link">Logout</a>
+                {% else %}
+                    <button class="btn btn-success" onclick="openSignupModal()">Login / Sign Up</button>
+                {% endif %}
             </div>
         </div>
     </nav>
+    
 
     <main class="main-content">
         <div class="container topblok">
@@ -77,8 +67,6 @@
                 <p>The AI Photo Colorizer automatically converts your old photos to color.</p>
                 <p>By employing AI colorization algorithms, the AI tech identifies portraits and objects within the
                     photo, infusing them with precise and vibrant colors.</p>
-                <button class="recolor-button">Recolor Images</button>
-                <button class="download-button">Download App</button>
             </div>
             <div class="recolor-video">
                 <video autoplay loop muted>
@@ -100,6 +88,18 @@
                 <p>The AI Photo Colorizer automatically converts your old photos to color.</p>
                 <p>By employing AI colorization algorithms, the AI tech identifies portraits and objects within the
                     photo, infusing them with precise and vibrant colors.</p>
+            </div>
+        </div>
+        <h1>Best colorized photos</h1>
+        <div class="showcase-container">
+            <div class="showcase-item">
+                <img src="/media/uploads/{{ top_images.0 }}" alt="Showcase 1">
+            </div>
+            <div class="showcase-item">
+                <img src="/media/uploads/{{ top_images.1 }}" alt="Showcase 2">
+            </div>
+            <div class="showcase-item">
+                <img src="/media/uploads/{{ top_images.2 }}" alt="Showcase 3">
             </div>
         </div>
     </main>
