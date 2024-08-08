@@ -36,32 +36,20 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand" href="../">
-                <img src="../static/staticfiles/images/logo.png" alt="Magicolor" height="30">
+            <a class="navbar-brand" href="../../">
+                <img src="../../static/staticfiles/images/logo.png" alt="Magicolorize" height="30">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-                       
-                    </li>
-                    <!-- Add other menu items similarly -->
-                </ul>
-                <div class="d-flex">
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                            data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
-                            {{name}} {{surname}} 
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="../account">Account</a>
-                            <a class="dropdown-item" href="../mygallery">Gallery</a>
-                            <a class="dropdown-item" href="../settings">Settings</a>
-                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-                        </div>
+            <div class="d-flex ml-auto">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                        data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
+                        {{name}} {{surname}}
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="../../account">Account</a>
+                        <a class="dropdown-item" href="../../mygallery">Gallery</a>
+                        <a class="dropdown-item" href="../../settings">Settings</a>
+                        <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                     </div>
                 </div>
             </div>

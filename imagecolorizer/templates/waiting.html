@@ -94,13 +94,13 @@
     </style>
     <div id="waitingPopup" class="popup-overlay">
         <div class="popup-content">
-            <p><i class="fas fa-user-clock"></i> Neredeyse hazır!<b> Kuyruktaki sıranız: <span id="queueNumber">{{position }}</span> </b> <br>
+            <p><i class="fas fa-user-clock"></i> Please wait!<b> You are in <span id="queueNumber">{{position }}</span>. </b> place<br>
                 Tahmini bekleme süresi <span id="waitTime">00:10:00</span>...</p>
             <p id="processingText" class="processing-text"></p>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
-            <p>Şu anda yoğun talep nedeniyle sıraya girdiniz. Yeniden yükleme veya yenileme yapmanıza gerek yoktur.</p>
+            <p>You are in line due to high demand. You do not need to renew.</p>
         </div>
     </div>
 
@@ -108,7 +108,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="../../">
-                <img src="../../static/staticfiles/images/logo.png" alt="Fotor" height="30">
+                <img src="../../static/staticfiles/images/logo.png" alt="Magicolorize" height="30">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -132,16 +132,11 @@
         <div class="content-container">
             <button id="menuToggle">☰</button>
             <div id="menu">
-
-                <h3>MagiColorize </h3><br>
+                <br>
                 <h4>Tools</h4>
                 <ul>
-                    <a href="">
-                        <li>Background Remover</li>
-                    </a>
-                    <a href="">
-                        <li>Colorizer</li>
-                    </a>
+                    <li class="listsss"><a href="#"><button class="btnum">Background Remover</button></a></li>
+                    <li><a href="#"><button class="btnum">Colorize</button></a></li>
                 </ul>
             </div>
             <div id="canvas-container" style="margin-left: 0px !important;">
@@ -156,12 +151,12 @@
                 <canvas id="miniMap" style="display: none;"></canvas>
             </div>
             <div id="rightAd" class="ad">
-                Reklam
+                Adsense
                 <div class="ad-close">✕</div>
             </div>
         </div>
         <div id="bottomAd" class="ad">
-            Reklam
+            Adsense
             <div class="ad-close">✕</div>
         </div>
     </div>
@@ -197,9 +192,9 @@
 
         function updateProcessingText() {
             const processingTexts = [
-                "Renklendirme işlemi başladı",
-                "Görsel işleniyor",
-                "İyileştirmeler yapılıyor"
+                "Coloring process has started",
+                "Image is being processed",
+                "Improvements are being made"
             ];
             const processingTextElement = document.getElementById('processingText');
             let currentIndex = 0;

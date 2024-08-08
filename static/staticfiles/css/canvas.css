@@ -285,3 +285,33 @@ body {
         max-height: 80px;
     }
 }
+
+ul {
+    list-style-type: none; /* Liste işaretlerini kaldırır */
+    padding: 0; /* Varsayılan iç boşluğu kaldırır */
+    margin: 0; /* Varsayılan dış boşluğu kaldırır */
+}
+
+.listsss {
+    margin-bottom: 10px; /* Butonlar arasındaki boşluğu ayarlar */
+}
+
+a {
+    text-decoration: none; /* Bağlantı alt çizgisini kaldırır */
+}
+
+.btnum {
+    display: block; /* Butonu blok olarak ayarlar, tam genişlikte olmasını sağlar */
+    width: 100%; /* Butonun genişliğini tam olarak ayarlar */
+    padding: 10px 0; /* Butona iç boşluk ekler, yukarı ve aşağıdan eşit olacak şekilde */
+    color: white; /* Buton metnini beyaz yapar */
+    background-color: #333; /* Buton arka plan rengini koyu gri yapar */
+    border: none; /* Buton kenarlığını kaldırır */
+    cursor: pointer; /* Fareyle üzerine gelindiğinde imleci el şeklinde gösterir */
+    text-align: left; /* Metni ortalar */
+    box-sizing: border-box; /* Padding ve border'ı genişlik hesaplamasına dahil eder */
+}
+
+.btnum:hover {
+    background-color: #555; /* Hover etkisi için buton rengini değiştirir */
+}

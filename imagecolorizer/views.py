@@ -18,6 +18,8 @@ from PIL import Image
 import io
 
 def index(request):
+    upload_directory = 'media/uploads/'  # Change this to your directory path
+    top_images = find_best_images(upload_directory)
     user_id = request.session.get('user_id')
     
     # Kullanıcı session varsa homepage'e yönlendir
@@ -37,7 +39,7 @@ def index(request):
             return redirect('editor', image_instance.id)
     else:
         form = ImageUploadForm()
-    return render(request, 'index.html', {'form': form})
+    return render(request, 'index.html', {'form': form, 'top_images': top_images})
 
 
 def iyzico_payment(request):
@@ -70,6 +72,8 @@ def editor(request, image_id):
             watermark_min_output = add_image_watermark(input_image_path, watermark_image_path, 1)
             
             img = Image.open(input_image_path)
+            # Example usage
+
             width, height = img.size
             new_size = (int(width * 0.10), int(height * 0.10))
             low_res_img = img.resize(new_size, Image.LANCZOS)
@@ -267,6 +271,7 @@ def decrease_credit(request):
             with transaction.atomic():
                 user_credits.remaining_credits -= 1
                 user_credits.save()
+                # bu kısım
                 Gallery.objects.create(user=user, image_url=image_url)
             return JsonResponse({
                 'success': True, 
@@ -321,4 +326,118 @@ def add_image_watermark(input_image, watermark_image_path, resize_option):
     img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
     return img_str
 
+import os
+import time
+import numpy as np
+from PIL import Image
 
+def calculate_colorfulness(image):
+    image = image.convert("RGB")
+    np_image = np.array(image)
+    R, G, B = np_image[:, :, 0], np_image[:, :, 1], np_image[:, :, 2]
+    rg = R - G
+    yb = 0.5 * (R + G) - B
+    colorfulness = np.sqrt(np.mean(rg**2) + np.mean(yb**2))
+    return colorfulness
+
+def calculate_contrast(image):
+    image = image.convert("L")  # Convert to grayscale
+    np_image = np.array(image)
+    contrast = np.std(np_image)  # Standard deviation as contrast measure
+    return contrast
+
+def calculate_histogram_diversity(image):
+    image = image.convert("RGB")
+    np_image = np.array(image)
+    hist, _ = np.histogram(np_image, bins=256, range=(0, 256))
+    histogram_diversity = np.sum(hist > 0) / hist.size
+    return histogram_diversity
+
+def rate_image(image):
+    colorfulness = calculate_colorfulness(image)
+    contrast = calculate_contrast(image)
+    histogram_diversity = calculate_histogram_diversity(image)
+    
+    colorfulness_score = np.clip(colorfulness / 255.0 * 25, 0, 25)
+    contrast_score = np.clip(contrast / 255.0 * 15, 0, 15)
+    histogram_score = np.clip(histogram_diversity * 10, 0, 10)
+    
+    total_score = colorfulness_score + contrast_score + histogram_score
+    return np.clip(total_score, 0, 50)
+
+def find_best_images(directory):
+    scores = []
+    
+    for filename in os.listdir(directory):
+        if filename.endswith("_colorized.png"):
+            file_path = os.path.join(directory, filename)
+            image = Image.open(file_path)
+            score = rate_image(image)
+            scores.append((filename, score))
+    
+    # Sort by score in descending order and select top 3
+    scores.sort(key=lambda x: x[1], reverse=True)
+    top_images = [filename for filename, score in scores[:3]]
+    
+    return top_images
+
+def monitor_directory(directory):
+        top_images = find_best_images(directory)
+        print("Top 3 images:", top_images)
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+import json
+from .models import Coupon, CouponUsage, UserCredits
+
+@login_required
+@csrf_exempt
+def redeem_coupon(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        code = data.get('code')
+
+        coupon = get_object_or_404(Coupon, code=code)
+
+        # Check if the user has already used this coupon
+        if CouponUsage.objects.filter(user=request.user, coupon=coupon).exists():
+            return JsonResponse({'success': False, 'message': 'You have already used this coupon.'}, status=400)
+
+        if not coupon.is_valid():
+            return JsonResponse({'success': False, 'message': 'This coupon has reached its limit of uses.'}, status=400)
+
+        # Add credits to the user
+        user_credits = request.user.usercredits
+        user_credits.remaining_credits += coupon.credits
+        user_credits.total_credits = coupon.credits
+        user_credits.save()
+
+        # Update coupon usage
+        coupon.used_count += 1
+        coupon.save()
+
+        # Record the coupon usage
+        CouponUsage.objects.create(user=request.user, coupon=coupon)
+
+        return JsonResponse({'success': True, 'credits': coupon.credits})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)

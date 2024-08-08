@@ -69,32 +69,20 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
-            <a class="navbar-brand" href="../">
-                <img src="../static/staticfiles/images/logo.png" alt="Magicolor" height="30">
+            <a class="navbar-brand" href="../../">
+                <img src="../../static/staticfiles/images/logo.png" alt="Magicolorize" height="30">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-                       
-                    </li>
-                    <!-- Add other menu items similarly -->
-                </ul>
-                <div class="d-flex">
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                            data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
-                            {{name}} {{surname}} 
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="../account">Account</a>
-                            <a class="dropdown-item" href="../mygallery">Gallery</a>
-                            <a class="dropdown-item" href="../settings">Settings</a>
-                            <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
-                        </div>
+            <div class="d-flex ml-auto">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                        data-bs-toggle='dropdown' aria-haspopup="true" aria-expanded="false">
+                        {{user.first_name}} {{user.last_name}}
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" href="../../account">Account</a>
+                        <a class="dropdown-item" href="../../mygallery">Gallery</a>
+                        <a class="dropdown-item" href="../../settings">Settings</a>
+                        <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
                     </div>
                 </div>
             </div>
@@ -131,13 +119,15 @@
                                     aria-valuemax="{{ total_credits }}">
                                 </div>
                             </div>
-                            <p class="text-center">Remaining: <strong>{{ remaining_credits }}</strong> out of {{  total_credits }} credits</p>
+                            <p class="text-center">Remaining: <strong>{{ remaining_credits }}</strong> out of {{ total_credits }} credits</p>
                             {% if remaining_credits == 0 %}
                             <div class="text-center mt-3">
-                                <a href="{% url 'iyzico_payment' %}" class="btn btn-primary">See payment method</a>
+                                <button id="see-payment-btn" class="btn btn-success">See payment method</button>
+                            </div>
+                            <div class="text-center mt-3">
+                                <button id="see-code-btn" class="btn btn-warning">Redeem Code</button>
                             </div>
                             {% endif %}
-
                             {% endwith %}
                             {% endwith %}
                             {% endwith %}
@@ -145,8 +135,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        </div>
         </div>
     </main>
 
@@ -157,6 +145,77 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('see-payment-btn').addEventListener('click', function () {
+        Swal.fire({
+            title: 'Select Credits and Pay',
+            html:
+                '<div class="form-group">' +
+                '<label for="credit-amount">Select Credit Amount:</label>' +
+                '<select id="credit-amount" class="form-control">' +
+                '<option value="10">1 Credit - $0.99</option>' +
+                '<option value="20">10 Credits - $8.99</option>' +
+                '<option value="50">50 Credits - $44.99</option>' +
+                '</select>' +
+                '</div>',
+            showCancelButton: true,
+            confirmButtonText: 'Pay Now',
+            preConfirm: () => {
+                const selectedCredits = document.getElementById('credit-amount').value;
+                return selectedCredits;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const selectedCredits = result.value;
+                // Implement the payment process based on the selected credits
+                Swal.fire(`You have selected ${selectedCredits} credits.`);
+            }
+        });
+    });
+
+    document.getElementById('see-code-btn').addEventListener('click', function () {
+        Swal.fire({
+            title: 'Redeem Code',
+            input: 'text',
+            inputLabel: 'Enter your code',
+            inputPlaceholder: 'Enter your code here',
+            showCancelButton: true,
+            confirmButtonText: 'Redeem',
+            preConfirm: (code) => {
+                return fetch('/redeem-coupon/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}' // Django CSRF token for security
+                    },
+                    body: JSON.stringify({ code: code })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => { throw new Error(data.message || 'Invalid code'); });
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(`Request failed: ${error.message}`);
+                });
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const data = result.value;
+                if (data.success) {
+                    Swal.fire(`Code redeemed successfully! You received ${data.credits} credits.`);
+                    // Update the UI to reflect the new credit balance, if necessary
+                    location.reload();
+                } else {
+                    Swal.fire(`Failed to redeem code: ${data.message}`);
+                }
+            }
+        });
+    });
+</script>
+
 </body>
 
 </html>
