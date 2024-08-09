@@ -86,3 +86,4 @@ class UserCreditsAdmin(admin.ModelAdmin):
         return render(request, 'admin/add_credits.html', context)
 
 admin.site.register(UserCredits, UserCreditsAdmin)
+

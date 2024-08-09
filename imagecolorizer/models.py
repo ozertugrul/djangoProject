@@ -10,7 +10,23 @@ class Users(models.Model):
     password = models.CharField(max_length=100)
     name = models.CharField(max_length=70)
     surname = models.CharField(max_length=70)
+ 
+# uprofile add start   
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    g_check = models.BooleanField(default=True, null=True)  
+    
 
+    def __str__(self):
+        return self.user.username
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+# uprofile add end
+
+ 
 class UploadedImage(models.Model):
     image = models.ImageField(upload_to='uploads/')
     processed = models.BooleanField(default=False)
