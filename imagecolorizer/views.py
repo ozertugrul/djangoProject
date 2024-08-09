@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import ImageUploadForm
-from .models import Users, UploadedImage, ProcessedImage
+from .models import UploadedImage, UserProfile
 from .tasks import process_image, queue_lock, processing_queue, PROCESSING_TIME
 import threading
 from django.contrib.auth import logout as auth_logout
@@ -115,7 +115,16 @@ def check_email(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         user_exists = User.objects.filter(email=email).exists()
-        return JsonResponse({'exists': user_exists})
+        if user_exists == True:
+            user = User.objects.get(email=email)
+            user_profile = UserProfile.objects.get(user_id=user.id)
+            if user_profile.g_check == 1:
+                return JsonResponse({'success': True})
+            else:
+                return JsonResponse({'exists': user_exists})
+        else:
+            return JsonResponse({'exists': user_exists})
+    
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 def signup(request):
@@ -123,8 +132,7 @@ def signup(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         name = request.POST.get('name')
-        surname = request.POST.get('surname')
-
+        surname = request.POST.get('surname')  
         if email and password and name and surname:
             # Email'in zaten var olup olmadığını kontrol edin
             if User.objects.filter(email=email).exists():
@@ -138,9 +146,15 @@ def signup(request):
                 first_name=name,
                 last_name=surname
             )
+            user.save()
             
+            user_profile = UserProfile.objects.get(user_id=user.id)
+            user_profile.g_check = 0
+            print(user_profile.g_check) 
+            user_profile.save()
+            print(user_profile.g_check)
             # Eğer ek profil bilgileri eklemeniz gerekiyorsa, custom user model veya profile modeli kullanmanız gerekebilir.
-            # user.profile.save()
+            
             user = authenticate(username=email, password=password)
             if user is not None:
                 login(request, user)
