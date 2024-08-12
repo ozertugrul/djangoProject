@@ -32,6 +32,9 @@ CSRF_TRUSTED_ORIGINS = ['https://ertu.magi']
  
 SITE_ID=8
 
+SOCIALACCOUNT_ADAPTER = 'imagecolorizer.adapters.CustomSocialAccountAdapter'
+
+
 # Application definition
 
 INSTALLED_APPS = [
