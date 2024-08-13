@@ -245,8 +245,8 @@ def settings(request):
         return redirect('index') 
     
     user = User.objects.get(id=user_id)
-
-    return render(request, 'settings.html', {'name': user.first_name, 'surname': user.last_name})
+    user_profile = UserProfile.objects.get(user_id = request.session.get('user_id'))
+    return render(request, 'settings.html', {'user': user, 'user_profile': user_profile})
 
 
 def sologin(request):
@@ -405,17 +405,6 @@ def monitor_directory(directory):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -455,3 +444,44 @@ def redeem_coupon(request):
         return JsonResponse({'success': True, 'credits': coupon.credits})
 
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+
+from django.contrib.auth import update_session_auth_hash
+@csrf_exempt
+def change_password(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
+
+        user_id = request.session.get('user_id')
+        try:
+            user = User.objects.get(id=user_id)
+            if check_password(current_password, user.password):
+                user.password = make_password(new_password)
+                user.save()
+                return JsonResponse({'success': True, 'message': 'Password changed successfully', 'redirect_url': '/'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Current password is incorrect'})
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+@csrf_exempt
+@login_required
+def delete_account(request):
+    if request.method == 'POST':
+        user = request.user
+        user.delete()
+        request.session['user_id'] = ""
+        return JsonResponse({'success': True, 'redirect_url': '/'})
+    return JsonResponse({'success': False, 'message': 'Invalid request method'})

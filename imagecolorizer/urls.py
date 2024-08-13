@@ -17,10 +17,9 @@ urlpatterns = [
     path('sologin/', views.sologin, name='sologin'),
     path('decrease_credit/', views.decrease_credit, name='decrease_credit'),
     path('iyzico-payment/', views.iyzico_payment, name='iyzico_payment'),
-    path('redeem-coupon/', views.redeem_coupon, name='redeem_coupon'),
-  
-
-    
+    path('redeem-coupon/', views.redeem_coupon, name='redeem_coupon'), 
+    path('change_pass/', views.change_password, name='change_password'),
+    path('delete_account/', views.delete_account, name='delete_account'),
 ]
 
 if settings.DEBUG:
