@@ -105,3 +105,24 @@ class CouponUsage(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.coupon.code}"
+    
+
+
+
+
+class Payment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    credits = models.IntegerField()
+    transaction_id = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment of {self.amount} for {self.credits} credits by {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        user_credits, created = UserCredits.objects.get_or_create(user=self.user)
+        user_credits.total_credits += self.credits
+        user_credits.remaining_credits += self.credits
+        user_credits.save()
