@@ -1,6 +1,8 @@
 import base64
+from functools import cache
+import uuid
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import ImageUploadForm
 from .models import UploadedImage, UserProfile
@@ -238,7 +240,7 @@ def logout(request):
     auth_logout(request)
     return redirect('index')
 
-def settings(request):
+def setting(request):
     user_id = request.session.get('user_id')
     # Kullanıcı session yoksa index.html sayfasına yönlendirin
     if not user_id:
@@ -246,7 +248,7 @@ def settings(request):
     
     user = User.objects.get(id=user_id)
     user_profile = UserProfile.objects.get(user_id = request.session.get('user_id'))
-    return render(request, 'settings.html', {'user': user, 'user_profile': user_profile})
+    return render(request, 'setting.html', {'user': user, 'user_profile': user_profile})
 
 
 def sologin(request):
@@ -485,3 +487,147 @@ def delete_account(request):
         request.session['user_id'] = ""
         return JsonResponse({'success': True, 'redirect_url': '/'})
     return JsonResponse({'success': False, 'message': 'Invalid request method'})
+
+import iyzipay
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from .models import Payment, UserCredits
+
+# İyzico yapılandırması
+options = {
+    'api_key': settings.IYZICO_API_KEY,
+    'secret_key': settings.IYZICO_SECRET_KEY,
+    'base_url': settings.IYZICO_BASE_URL
+}
+
+def create_payment_request(buyer, address, basket_items, callback_url):
+    conversation_id = str(uuid.uuid4())
+    requesta = {
+        'locale': 'tr',
+        'conversationId':conversation_id,
+        'price': '8.99',
+        'paidPrice': '9.36',
+        'currency': 'TRY',
+        'basketId': 'B67832',
+        'paymentGroup': 'PRODUCT',
+        "callbackUrl": callback_url,
+        "enabledInstallments": ['2', '3', '6', '9'],
+        'buyer': buyer,
+        'shippingAddress': address,
+        'billingAddress': address,
+        'basketItems': basket_items
+    }
+    checkout_form_initialize = iyzipay.CheckoutFormInitialize().create(requesta, options)
+
+    return checkout_form_initialize
+
+@login_required
+def initiate_payment(request):
+    if request.method == 'POST':
+        credit_amount = request.POST.get('credit_amount')
+        price = {
+            '10': 0.99,
+            '20': 8.99,
+            '50': 44.99
+        }.get(credit_amount, 0)
+
+        buyer = {
+            'id': str(request.user.id),
+            'name': request.user.first_name,
+            'surname': request.user.last_name,
+            'email': request.user.email,
+            'identityNumber': '74300864791',
+            'registrationAddress': 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+            'city': 'Istanbul',
+            'country': 'Turkey',
+            'ip': '85.34.78.112',
+            'zipCode': '34732',
+        }
+
+        address = {
+            'contactName': f'{request.user.first_name} {request.user.last_name}',
+            'city': 'Istanbul',
+            'country': 'Turkey',
+            'address': 'Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1',
+            'zipCode': '34732',
+        }
+
+        basket_items = [
+            {
+                'id': 'BI101',
+                'name': f'{credit_amount} Credits',
+                'category1': 'Credits',
+                'itemType': 'VIRTUAL',
+                'price': str(price)
+            }
+
+        ]
+
+   
+        callback_url = request.build_absolute_uri(reverse('payment_callback'))
+        print(callback_url)
+        result = create_payment_request(buyer, address, basket_items, callback_url)
+        header = {'Content-Type': 'application/json'}
+        content = result.read().decode('utf-8')
+        json_content = json.loads(content)
+
+        #print(type(json_content))
+        print(json_content["checkoutFormContent"])
+  
+        if 1==2:
+            return render(request, 'imagecolorizer/payment_form.html', {'form_content': json_content['checkoutFormContent']})
+        else:
+           
+            return HttpResponse(json_content["checkoutFormContent"])
+        
+            #return render(request, 'imagecolorizer/error.html', {'error': result.get('errorMessage', 'An error occurred')})
+
+    return render(request, 'account.html')
+
+
+
+@csrf_exempt
+def payment_callback(request):
+    if request.method == 'POST':
+            token = request.POST.get('token')
+            # Verify the payment with Iyzico
+            print("token****************")
+            print(token)
+            payload={
+                'locale':'tr',
+                'conversationId':'123456789',
+                'token':token,
+            }
+            payment = iyzipay.CheckoutForm().retrieve(payload, options)
+            payment_data = payment.read().decode('utf-8')
+
+            # Parse the JSON data
+            payment_json = json.loads(payment_data)
+
+            # Check the payment status
+            payment_status = payment_json.get("paymentStatus")
+            print(payment_json)
+            if payment_status == 'SUCCESS':
+                # Payment successful, create Payment object
+                print("************************************www")
+                amount = payment_json.get("price")
+                credits = payment_json["itemTransactions"][0].get("itemId")
+                if(credits=='BI101'):
+                    credits=10
+                elif (credits=='BI100'):
+                    credits=1
+                transaction_id = payment_json.get("paymentId")
+                Payment.objects.create(
+                    user=request.user,
+                    amount=amount,
+                    credits=credits,
+                    transaction_id=transaction_id
+                )
+    
+            else:
+                # Payment failed
+                print("Failed")
+
+    return redirect('homepage')  

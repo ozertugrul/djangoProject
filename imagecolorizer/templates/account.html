@@ -119,15 +119,15 @@
                                     aria-valuemax="{{ total_credits }}">
                                 </div>
                             </div>
-                            <p class="text-center">Remaining: <strong>{{ remaining_credits }}</strong> out of {{ total_credits }} credits</p>
-                            {% if remaining_credits == 0 %}
+                            <p class="text-center">Remaining: <strong>{{ remaining_credits }}</strong> credits</p>
+                           
                             <div class="text-center mt-3">
                                 <button id="see-payment-btn" class="btn btn-success">See payment method</button>
                             </div>
                             <div class="text-center mt-3">
                                 <button id="see-code-btn" class="btn btn-warning">Redeem Code</button>
                             </div>
-                            {% endif %}
+                          
                             {% endwith %}
                             {% endwith %}
                             {% endwith %}
@@ -145,76 +145,118 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.getElementById('see-payment-btn').addEventListener('click', function () {
-        Swal.fire({
-            title: 'Select Credits and Pay',
-            html:
-                '<div class="form-group">' +
-                '<label for="credit-amount">Select Credit Amount:</label>' +
-                '<select id="credit-amount" class="form-control">' +
-                '<option value="10">1 Credit - $0.99</option>' +
-                '<option value="20">10 Credits - $8.99</option>' +
-                '<option value="50">50 Credits - $44.99</option>' +
-                '</select>' +
-                '</div>',
-            showCancelButton: true,
-            confirmButtonText: 'Pay Now',
-            preConfirm: () => {
-                const selectedCredits = document.getElementById('credit-amount').value;
-                return selectedCredits;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const selectedCredits = result.value;
-                // Implement the payment process based on the selected credits
-                Swal.fire(`You have selected ${selectedCredits} credits.`);
-            }
-        });
-    });
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('see-payment-btn').addEventListener('click', function () {
+            Swal.fire({
+                title: 'Select Credits and Pay',
+                html:
+                    '<div class="form-group">' +
+                    '<label for="credit-amount">Select Credit Amount:</label>' +
+                    '<select id="credit-amount" class="form-control">' +
+                    '<option value="10">1 Credit - $0.99</option>' +
+                    '<option value="20">10 Credits - $8.99</option>' +
+                    '<option value="50">50 Credits - $44.99</option>' +
+                    '</select>' +
+                    '</div>',
+                showCancelButton: true,
+                confirmButtonText: 'Pay Now',
+                preConfirm: () => {
+                    const selectedCredits = document.getElementById('credit-amount').value;
+                    return selectedCredits;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const selectedCredits = result.value;
+                    // Send a POST request to initiate_payment view
+                    fetch('/initiate-payment/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: `credit_amount=${selectedCredits}`
+                    })
+                        .then(response => response.text())
+                        .then(html => {
+                            // Display the Iyzico payment form
+                            // Create an iframe element
+                            const iframe = document.createElement('iframe');
+                            iframe.style.width = '100%';
+                            iframe.style.minHeight = '600px';
+                            // Adjust height as needed
+                            // Set the iframe content to the received HTML
+                            iframe.srcdoc = html;
 
-    document.getElementById('see-code-btn').addEventListener('click', function () {
-        Swal.fire({
-            title: 'Redeem Code',
-            input: 'text',
-            inputLabel: 'Enter your code',
-            inputPlaceholder: 'Enter your code here',
-            showCancelButton: true,
-            confirmButtonText: 'Redeem',
-            preConfirm: (code) => {
-                return fetch('/redeem-coupon/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}' // Django CSRF token for security
-                    },
-                    body: JSON.stringify({ code: code })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(data => { throw new Error(data.message || 'Invalid code'); });
+                            // Display the Iyzico payment form inside an iframe in a SweetAlert modal
+                            Swal.fire({
+                                title: 'Complete Payment',
+                                html: iframe.outerHTML,
+                                showConfirmButton: false,
+                                width: '600px', // Adjust width as needed
+                            });
+                        });
+                }
+            });
+        });
+
+        // Helper function to get CSremF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
                     }
-                    return response.json();
-                })
-                .catch(error => {
-                    Swal.showValidationMessage(`Request failed: ${error.message}`);
-                });
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const data = result.value;
-                if (data.success) {
-                    Swal.fire(`Code redeemed successfully! You received ${data.credits} credits.`);
-                    // Update the UI to reflect the new credit balance, if necessary
-                    location.reload();
-                } else {
-                    Swal.fire(`Failed to redeem code: ${data.message}`);
                 }
             }
+            return cookieValue;
+        }
+
+        document.getElementById('see-code-btn').addEventListener('click', function () {
+            Swal.fire({
+                title: 'Redeem Code',
+                input: 'text',
+                inputLabel: 'Enter your code',
+                inputPlaceholder: 'Enter your code here',
+                showCancelButton: true,
+                confirmButtonText: 'Redeem',
+                preConfirm: (code) => {
+                    return fetch('/redeem-coupon/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}' // Django CSRF token for security
+                        },
+                        body: JSON.stringify({ code: code })
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => { throw new Error(data.message || 'Invalid code'); });
+                            }
+                            return response.json();
+                        })
+                        .catch(error => {
+                            Swal.showValidationMessage(`Request failed: ${error.message}`);
+                        });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const data = result.value;
+                    if (data.success) {
+                        Swal.fire(`Code redeemed successfully! You received ${data.credits} credits.`);
+                        // Update the UI to reflect the new credit balance, if necessary
+                        location.reload();
+                    } else {
+                        Swal.fire(`Failed to redeem code: ${data.message}`);
+                    }
+                }
+            });
         });
-    });
-</script>
+    </script>
 
 </body>
 

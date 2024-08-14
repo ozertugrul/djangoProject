@@ -29,6 +29,10 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
  
 CSRF_TRUSTED_ORIGINS = ['https://ertu.magi']
+
+IYZICO_API_KEY = 'sandbox-RppMKkhA17tbMOHhOJn3IM92xBKwSoVH'
+IYZICO_SECRET_KEY = 'ytJ7ZzpDGOqzW8IjiTVJwwvqaL2C2aDc'
+IYZICO_BASE_URL = 'sandbox-api.iyzipay.com'  # Sandbox için
  
 SITE_ID=8
 
