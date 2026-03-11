@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,20 +21,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&gaj1y9$5rh6f%su_nhl1g5ax%0yhc443-_mu^3nybks!ynwsq'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes', 'on')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '*').split(',') if h.strip()]
  
-CSRF_TRUSTED_ORIGINS = ['https://ertu.magi']
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://ertu.magi').split(',') if o.strip()
+]
 
-IYZICO_API_KEY = 'REDACTED_IYZICO_API_KEY'
-IYZICO_SECRET_KEY = 'REDACTED_IYZICO_SECRET_KEY'
-IYZICO_BASE_URL = 'sandbox-api.iyzipay.com'  # Sandbox için
+IYZICO_API_KEY = os.getenv('IYZICO_API_KEY', '')
+IYZICO_SECRET_KEY = os.getenv('IYZICO_SECRET_KEY', '')
+IYZICO_BASE_URL = os.getenv('IYZICO_BASE_URL', 'sandbox-api.iyzipay.com')
  
-SITE_ID=8
+SITE_ID = int(os.getenv('SITE_ID', '8'))
 
 SOCIALACCOUNT_ADAPTER = 'imagecolorizer.adapters.CustomSocialAccountAdapter'
 
@@ -106,10 +108,11 @@ WSGI_APPLICATION = 'magiColorize.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME" : "newuwsgi",
-        "USER" : "newuwsgi",
-        "PASSWORD" : "REDACTED_DB_PASSWORD",
-        "HOST": "127.0.0.1"
+        "NAME": os.getenv("DB_NAME", "newuwsgi"),
+        "USER": os.getenv("DB_USER", "newuwsgi"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "change_me"),
+        "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("DB_PORT", "3306"),
     }
 }
 
